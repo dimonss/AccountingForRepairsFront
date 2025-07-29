@@ -15,10 +15,17 @@ export interface Repair {
   actual_cost?: number;
   parts_cost?: number;
   labor_cost?: number;
+  assigned_to?: number;
+  created_by?: number;
   notes?: string;
   created_at?: string;
   updated_at?: string;
   completed_at?: string;
+  // User information for joins
+  created_by_username?: string;
+  created_by_name?: string;
+  assigned_to_username?: string;
+  assigned_to_name?: string;
 }
 
 export interface ApiResponse<T> {
@@ -30,21 +37,28 @@ export interface ApiResponse<T> {
 export const repairsApi = createApi({
   reducerPath: 'repairsApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:3001/api',
+    baseUrl: 'http://localhost:3001/api/repairs',
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as any).auth.token;
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
   }),
   tagTypes: ['Repair'],
   endpoints: (builder) => ({
     getRepairs: builder.query<ApiResponse<Repair[]>, void>({
-      query: () => '/repairs',
+      query: () => '',
       providesTags: ['Repair'],
     }),
     getRepair: builder.query<ApiResponse<Repair>, number>({
-      query: (id) => `/repairs/${id}`,
+      query: (id) => `/${id}`,
       providesTags: (result, error, id) => [{ type: 'Repair', id }],
     }),
     createRepair: builder.mutation<ApiResponse<{ id: number; message: string }>, Partial<Repair>>({
       query: (repair) => ({
-        url: '/repairs',
+        url: '',
         method: 'POST',
         body: repair,
       }),
@@ -52,7 +66,7 @@ export const repairsApi = createApi({
     }),
     updateRepair: builder.mutation<ApiResponse<{ message: string }>, { id: number; repair: Partial<Repair> }>({
       query: ({ id, repair }) => ({
-        url: `/repairs/${id}`,
+        url: `/${id}`,
         method: 'PUT',
         body: repair,
       }),
@@ -60,18 +74,21 @@ export const repairsApi = createApi({
     }),
     deleteRepair: builder.mutation<ApiResponse<{ message: string }>, number>({
       query: (id) => ({
-        url: `/repairs/${id}`,
+        url: `/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Repair'],
     }),
     updateRepairStatus: builder.mutation<ApiResponse<{ message: string }>, { id: number; status: string; notes?: string }>({
       query: ({ id, status, notes }) => ({
-        url: `/repairs/${id}/status`,
+        url: `/${id}/status`,
         method: 'PATCH',
         body: { status, notes },
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Repair', id }],
+    }),
+    getRepairHistory: builder.query<ApiResponse<any[]>, number>({
+      query: (id) => `/${id}/history`,
     }),
   }),
 });
@@ -83,4 +100,5 @@ export const {
   useUpdateRepairMutation,
   useDeleteRepairMutation,
   useUpdateRepairStatusMutation,
+  useGetRepairHistoryQuery,
 } = repairsApi; 
