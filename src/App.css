@@ -22,8 +22,11 @@ body {
 
 .App {
   min-height: 100vh;
+  width: 100%;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Header styles */
@@ -36,6 +39,8 @@ body {
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-left {
@@ -149,12 +154,19 @@ body {
 /* Main content */
 .app-main {
   padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .form-section {
   margin-bottom: 2rem;
+  width: 100%;
+}
+
+.repairs-section {
+  width: 100%;
 }
 
 /* Form styles */
@@ -165,6 +177,8 @@ body {
   padding: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .repair-form h2 {
@@ -176,9 +190,10 @@ body {
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 .form-group {
@@ -260,6 +275,8 @@ body {
   padding: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .repairs-list h2 {
@@ -279,8 +296,9 @@ body {
 
 .repairs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 1.5rem;
+  width: 100%;
 }
 
 .repair-card {
@@ -411,6 +429,18 @@ body {
 }
 
 /* Responsive design */
+@media (min-width: 1920px) {
+  .app-main {
+    padding: 2rem 4rem;
+  }
+  
+  .repair-form,
+  .repairs-list {
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+}
+
 @media (max-width: 768px) {
   .app-header {
     flex-direction: column;
@@ -441,6 +471,7 @@ body {
 
   .app-main {
     padding: 1rem;
+    width: 100%;
   }
 
   .form-grid {
