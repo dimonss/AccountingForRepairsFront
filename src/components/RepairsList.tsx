@@ -1,21 +1,38 @@
+import { useState } from 'react'
 import { useGetRepairsQuery, useDeleteRepairMutation, useUpdateRepairStatusMutation } from '../store/api/repairsApi'
 import type { Repair } from '../store/api/repairsApi'
+import Modal from './Modal'
 
 const RepairsList = () => {
   const { data: repairsResponse, error, isLoading } = useGetRepairsQuery()
   const [deleteRepair] = useDeleteRepairMutation()
   const [updateRepairStatus] = useUpdateRepairStatusMutation()
+  
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [repairToDelete, setRepairToDelete] = useState<Repair | null>(null)
 
   const repairs = repairsResponse?.data || []
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this repair?')) {
-      try {
-        await deleteRepair(id).unwrap()
-      } catch (error) {
-        console.error('Failed to delete repair:', error)
-      }
+  const handleDeleteClick = (repair: Repair) => {
+    setRepairToDelete(repair)
+    setShowDeleteModal(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!repairToDelete) return
+    
+    try {
+      await deleteRepair(repairToDelete.id!).unwrap()
+      setShowDeleteModal(false)
+      setRepairToDelete(null)
+    } catch (error) {
+      console.error('Failed to delete repair:', error)
     }
+  }
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false)
+    setRepairToDelete(null)
   }
 
   const handleStatusChange = async (id: number, newStatus: string) => {
@@ -84,7 +101,7 @@ const RepairsList = () => {
                   <option value="cancelled">Cancelled</option>
                 </select>
                 <button 
-                  onClick={() => handleDelete(repair.id!)}
+                  onClick={() => handleDeleteClick(repair)}
                   className="delete-btn"
                 >
                   Delete
@@ -94,6 +111,40 @@ const RepairsList = () => {
           ))}
         </div>
       )}
+
+      <Modal 
+        isOpen={showDeleteModal} 
+        onClose={handleCancelDelete}
+        title="Подтверждение удаления"
+      >
+        {repairToDelete && (
+          <div className="delete-confirmation">
+            <p>
+              Вы уверены, что хотите удалить запись о ремонте?
+            </p>
+            <div className="repair-summary">
+              <p><strong>Устройство:</strong> {repairToDelete.device_type} - {repairToDelete.brand} {repairToDelete.model}</p>
+              <p><strong>Клиент:</strong> {repairToDelete.client_name}</p>
+              <p><strong>Проблема:</strong> {repairToDelete.issue_description}</p>
+              <p><strong>Статус:</strong> {repairToDelete.repair_status.replace('_', ' ').toUpperCase()}</p>
+            </div>
+            <div className="modal-actions">
+              <button 
+                className="cancel-btn"
+                onClick={handleCancelDelete}
+              >
+                Отмена
+              </button>
+              <button 
+                className="confirm-delete-btn"
+                onClick={handleConfirmDelete}
+              >
+                Удалить
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }

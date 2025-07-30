@@ -26,7 +26,6 @@ function App() {
               Welcome, <strong>{user?.full_name}</strong> ({user?.role})
             </span>
           </div>
-          
           <div className="header-actions">
             <button 
               className="add-repair-btn"
@@ -40,9 +39,9 @@ function App() {
             >
               🚪 Logout
             </button>
+
           </div>
         </header>
-        
         <main className="app-main">
           {showForm && (
             <div className="form-section">
