@@ -77,6 +77,7 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   background: white;
+  color: #2d3748;
 }
 
 .form-group input:focus {
@@ -90,9 +91,13 @@
   cursor: not-allowed;
 }
 
+.form-group input::placeholder {
+  color: #a0aec0;
+}
+
 .login-button {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: white !important;
   border: none;
   padding: 1rem;
   border-radius: 0.5rem;
