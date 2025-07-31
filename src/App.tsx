@@ -21,9 +21,9 @@ function App() {
       <div className="App">
         <header className="app-header">
           <div className="header-left">
-            <h1>🔧 Repairs System</h1>
+            <h1>🔧 Система Ремонтов</h1>
             <span className="user-welcome">
-              Welcome, <strong>{user?.full_name}</strong> ({user?.role})
+              Добро пожаловать, <strong>{user?.full_name}</strong> ({user?.role})
             </span>
           </div>
           <div className="header-actions">
@@ -31,13 +31,13 @@ function App() {
               className="add-repair-btn"
               onClick={() => setShowForm(!showForm)}
             >
-              {showForm ? 'Cancel' : 'Add New Repair'}
+              {showForm ? 'Отмена' : 'Добавить Ремонт'}
             </button>
             <button 
               className="logout-btn"
               onClick={handleLogout}
             >
-              🚪 Logout
+              🚪 Выход
             </button>
 
           </div>

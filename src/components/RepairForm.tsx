@@ -56,11 +56,11 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
 
   return (
     <div className="repair-form">
-      <h2>Add New Repair</h2>
+      <h2>Добавить Новый Ремонт</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-grid">
           <div className="form-group">
-            <label htmlFor="device_type">Device Type *</label>
+            <label htmlFor="device_type">Тип Устройства *</label>
             <select
               id="device_type"
               name="device_type"
@@ -68,19 +68,19 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
               onChange={handleChange}
               required
             >
-              <option value="">Select device type</option>
-              <option value="smartphone">Smartphone</option>
-              <option value="tablet">Tablet</option>
-              <option value="laptop">Laptop</option>
-              <option value="desktop">Desktop</option>
-              <option value="printer">Printer</option>
-              <option value="monitor">Monitor</option>
-              <option value="other">Other</option>
+              <option value="">Выберите тип устройства</option>
+              <option value="smartphone">Смартфон</option>
+              <option value="tablet">Планшет</option>
+              <option value="laptop">Ноутбук</option>
+              <option value="desktop">Настольный ПК</option>
+              <option value="printer">Принтер</option>
+              <option value="monitor">Монитор</option>
+              <option value="other">Другое</option>
             </select>
           </div>
 
           <div className="form-group">
-            <label htmlFor="brand">Brand *</label>
+            <label htmlFor="brand">Бренд *</label>
             <input
               type="text"
               id="brand"
@@ -92,7 +92,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="model">Model *</label>
+            <label htmlFor="model">Модель *</label>
             <input
               type="text"
               id="model"
@@ -104,7 +104,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="serial_number">Serial Number</label>
+            <label htmlFor="serial_number">Серийный Номер</label>
             <input
               type="text"
               id="serial_number"
@@ -115,7 +115,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="client_name">Client Name *</label>
+            <label htmlFor="client_name">Имя Клиента *</label>
             <input
               type="text"
               id="client_name"
@@ -127,7 +127,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="client_phone">Client Phone *</label>
+            <label htmlFor="client_phone">Телефон Клиента *</label>
             <input
               type="tel"
               id="client_phone"
@@ -139,7 +139,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="client_email">Client Email</label>
+            <label htmlFor="client_email">Email Клиента</label>
             <input
               type="email"
               id="client_email"
@@ -150,7 +150,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="estimated_cost">Estimated Cost ($)</label>
+            <label htmlFor="estimated_cost">Предварительная Стоимость (₽)</label>
             <input
               type="number"
               id="estimated_cost"
@@ -164,7 +164,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
         </div>
 
         <div className="form-group full-width">
-          <label htmlFor="issue_description">Issue Description *</label>
+          <label htmlFor="issue_description">Описание Проблемы *</label>
           <textarea
             id="issue_description"
             name="issue_description"
@@ -176,7 +176,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
         </div>
 
         <div className="form-group full-width">
-          <label htmlFor="notes">Additional Notes</label>
+          <label htmlFor="notes">Дополнительные Заметки</label>
           <textarea
             id="notes"
             name="notes"
@@ -188,7 +188,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
 
         <div className="form-actions">
           <button type="submit" disabled={isLoading} className="submit-btn">
-            {isLoading ? 'Creating...' : 'Create Repair'}
+            {isLoading ? 'Создание...' : 'Создать Ремонт'}
           </button>
         </div>
       </form>

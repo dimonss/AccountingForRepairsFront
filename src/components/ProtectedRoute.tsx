@@ -26,10 +26,10 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       return (
         <div className="access-denied">
           <div className="access-denied-card">
-            <h2>🚫 Access Denied</h2>
-            <p>You don't have permission to access this resource.</p>
-            <p>Required role: <strong>{requiredRole}</strong></p>
-            <p>Your role: <strong>{user.role}</strong></p>
+            <h2>🚫 Доступ Запрещён</h2>
+            <p>У вас нет разрешения на доступ к этому ресурсу.</p>
+            <p>Требуемая роль: <strong>{requiredRole}</strong></p>
+            <p>Ваша роль: <strong>{user.role}</strong></p>
           </div>
         </div>
       );

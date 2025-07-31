@@ -54,14 +54,25 @@ const RepairsList = () => {
     }
   }
 
-  if (isLoading) return <div className="loading">Loading repairs...</div>
-  if (error) return <div className="error">Error loading repairs</div>
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending': return 'ОЖИДАЕТ'
+      case 'in_progress': return 'В РАБОТЕ'
+      case 'waiting_parts': return 'ОЖИДАНИЕ ЗАПЧАСТЕЙ'
+      case 'completed': return 'ЗАВЕРШЁН'
+      case 'cancelled': return 'ОТМЕНЁН'
+      default: return status.replace('_', ' ').toUpperCase()
+    }
+  }
+
+  if (isLoading) return <div className="loading">Загрузка ремонтов...</div>
+  if (error) return <div className="error">Ошибка загрузки ремонтов</div>
 
   return (
     <div className="repairs-list">
-      <h2>Repairs List</h2>
+      <h2>Список Ремонтов</h2>
       {repairs.length === 0 ? (
-        <p className="no-repairs">No repairs found. Add your first repair!</p>
+        <p className="no-repairs">Ремонты не найдены. Добавьте первый ремонт!</p>
       ) : (
         <div className="repairs-grid">
           {repairs.map((repair: Repair) => (
@@ -72,20 +83,20 @@ const RepairsList = () => {
                   className="status-badge" 
                   style={{ backgroundColor: getStatusColor(repair.repair_status) }}
                 >
-                  {repair.repair_status.replace('_', ' ').toUpperCase()}
+                  {getStatusText(repair.repair_status)}
                 </div>
               </div>
               
               <div className="repair-details">
-                <p><strong>Client:</strong> {repair.client_name}</p>
-                <p><strong>Phone:</strong> {repair.client_phone}</p>
+                <p><strong>Клиент:</strong> {repair.client_name}</p>
+                <p><strong>Телефон:</strong> {repair.client_phone}</p>
                 {repair.client_email && <p><strong>Email:</strong> {repair.client_email}</p>}
-                {repair.serial_number && <p><strong>Serial:</strong> {repair.serial_number}</p>}
-                <p><strong>Issue:</strong> {repair.issue_description}</p>
-                {repair.estimated_cost && <p><strong>Est. Cost:</strong> ${repair.estimated_cost}</p>}
-                {repair.actual_cost && <p><strong>Actual Cost:</strong> ${repair.actual_cost}</p>}
-                {repair.notes && <p><strong>Notes:</strong> {repair.notes}</p>}
-                <p><strong>Created:</strong> {new Date(repair.created_at || '').toLocaleDateString()}</p>
+                {repair.serial_number && <p><strong>Серийный номер:</strong> {repair.serial_number}</p>}
+                <p><strong>Проблема:</strong> {repair.issue_description}</p>
+                {repair.estimated_cost && <p><strong>Предварительная стоимость:</strong> {repair.estimated_cost}₽</p>}
+                {repair.actual_cost && <p><strong>Фактическая стоимость:</strong> {repair.actual_cost}₽</p>}
+                {repair.notes && <p><strong>Заметки:</strong> {repair.notes}</p>}
+                <p><strong>Создано:</strong> {new Date(repair.created_at || '').toLocaleDateString('ru-RU')}</p>
               </div>
 
               <div className="repair-actions">
@@ -94,17 +105,17 @@ const RepairsList = () => {
                   onChange={(e) => handleStatusChange(repair.id!, e.target.value)}
                   className="status-select"
                 >
-                  <option value="pending">Pending</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="waiting_parts">Waiting Parts</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="pending">Ожидает</option>
+                  <option value="in_progress">В работе</option>
+                  <option value="waiting_parts">Ожидание запчастей</option>
+                  <option value="completed">Завершён</option>
+                  <option value="cancelled">Отменён</option>
                 </select>
                 <button 
                   onClick={() => handleDeleteClick(repair)}
                   className="delete-btn"
                 >
-                  Delete
+                  Удалить
                 </button>
               </div>
             </div>
@@ -126,7 +137,7 @@ const RepairsList = () => {
               <p><strong>Устройство:</strong> {repairToDelete.device_type} - {repairToDelete.brand} {repairToDelete.model}</p>
               <p><strong>Клиент:</strong> {repairToDelete.client_name}</p>
               <p><strong>Проблема:</strong> {repairToDelete.issue_description}</p>
-              <p><strong>Статус:</strong> {repairToDelete.repair_status.replace('_', ' ').toUpperCase()}</p>
+              <p><strong>Статус:</strong> {getStatusText(repairToDelete.repair_status)}</p>
             </div>
             <div className="modal-actions">
               <button 

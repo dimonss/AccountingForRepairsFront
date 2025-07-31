@@ -21,7 +21,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     setError('');
 
     if (!username || !password) {
-      setError('Please enter both username and password');
+      setError('Пожалуйста, введите имя пользователя и пароль');
       return;
     }
 
@@ -32,10 +32,10 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
         dispatch(setCredentials(result.data));
         onSuccess?.();
       } else {
-        setError(result.error || 'Login failed');
+        setError(result.error || 'Ошибка входа');
       }
     } catch (err: any) {
-      setError(err?.data?.error || 'Login failed. Please try again.');
+      setError(err?.data?.error || 'Ошибка входа. Попробуйте снова.');
     }
   };
 
@@ -43,8 +43,8 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>🔒 Repairs System</h1>
-          <p>Sign in to access the repair management system</p>
+          <h1>🔒 Система Ремонтов</h1>
+          <p>Войдите в систему управления ремонтами</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
@@ -55,26 +55,26 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
           )}
 
           <div className="form-group">
-            <label htmlFor="username">Username or Email</label>
+            <label htmlFor="username">Имя пользователя или Email</label>
             <input
               type="text"
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username or email"
+              placeholder="Введите имя пользователя или email"
               required
               disabled={isLoading}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">Пароль</label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder="Введите пароль"
               required
               disabled={isLoading}
             />
@@ -85,12 +85,12 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
             className="login-button"
             disabled={isLoading}
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? 'Вход...' : 'Войти'}
           </button>
         </form>
 
         <div className="login-footer">
-          <p>🔐 Secure access to confidential repair data</p>
+          <p>🔐 Безопасный доступ к конфиденциальным данным ремонтов</p>
         </div>
       </div>
     </div>
