@@ -2,38 +2,48 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { User } from './api/authApi';
 
 interface AuthState {
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   user: User | null;
   isAuthenticated: boolean;
 }
 
 const initialState: AuthState = {
-  token: localStorage.getItem('token'),
+  accessToken: localStorage.getItem('accessToken'),
+  refreshToken: localStorage.getItem('refreshToken'),
   user: JSON.parse(localStorage.getItem('user') || 'null'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  isAuthenticated: !!localStorage.getItem('accessToken'),
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (state, action: PayloadAction<{ token: string; user: User }>) => {
-      const { token, user } = action.payload;
-      state.token = token;
+    setCredentials: (state, action: PayloadAction<{ accessToken: string; refreshToken: string; user: User }>) => {
+      const { accessToken, refreshToken, user } = action.payload;
+      state.accessToken = accessToken;
+      state.refreshToken = refreshToken;
       state.user = user;
       state.isAuthenticated = true;
       
       // Save to localStorage
-      localStorage.setItem('token', token);
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify(user));
     },
+    updateAccessToken: (state, action: PayloadAction<string>) => {
+      state.accessToken = action.payload;
+      localStorage.setItem('accessToken', action.payload);
+    },
     logout: (state) => {
-      state.token = null;
+      state.accessToken = null;
+      state.refreshToken = null;
       state.user = null;
       state.isAuthenticated = false;
       
       // Clear localStorage
-      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
     },
     updateUser: (state, action: PayloadAction<User>) => {
@@ -43,5 +53,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout, updateUser } = authSlice.actions;
+export const { setCredentials, updateAccessToken, logout, updateUser } = authSlice.actions;
 export default authSlice.reducer; 

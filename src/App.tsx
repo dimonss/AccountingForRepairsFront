@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from './store/store'
 import { logout } from './store/authSlice'
+import { useLogoutMutation } from './store/api/authApi'
 import ProtectedRoute from './components/ProtectedRoute'
 import RepairsList from './components/RepairsList'
 import RepairForm from './components/RepairForm'
@@ -9,11 +10,22 @@ import './App.css'
 
 function App() {
   const [showForm, setShowForm] = useState(false)
-  const { user } = useSelector((state: RootState) => state.auth)
+  const { user, refreshToken } = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch()
+  const [logoutMutation] = useLogoutMutation()
 
-  const handleLogout = () => {
-    dispatch(logout())
+  const handleLogout = async () => {
+    try {
+      // Call logout API to revoke refresh token
+      if (refreshToken) {
+        await logoutMutation({ refreshToken }).unwrap()
+      }
+    } catch (error) {
+      console.error('Logout API call failed:', error)
+    } finally {
+      // Always clear local state regardless of API call result
+      dispatch(logout())
+    }
   }
 
   return (

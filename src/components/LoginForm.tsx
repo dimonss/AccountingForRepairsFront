@@ -28,8 +28,12 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     try {
       const result = await login({ username, password }).unwrap();
       
-      if (result.success) {
-        dispatch(setCredentials(result.data));
+      if (result.success && result.data) {
+        dispatch(setCredentials({
+          accessToken: result.data.accessToken,
+          refreshToken: result.data.refreshToken,
+          user: result.data.user
+        }));
         onSuccess?.();
       } else {
         setError(result.error || 'Ошибка входа');

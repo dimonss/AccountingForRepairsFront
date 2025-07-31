@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query';
 
 export interface Repair {
   id?: number;
@@ -17,15 +18,21 @@ export interface Repair {
   labor_cost?: number;
   assigned_to?: number;
   created_by?: number;
-  notes?: string;
   created_at?: string;
   updated_at?: string;
   completed_at?: string;
-  // User information for joins
-  created_by_username?: string;
-  created_by_name?: string;
-  assigned_to_username?: string;
-  assigned_to_name?: string;
+  notes?: string;
+}
+
+export interface RepairHistoryEntry {
+  id: number;
+  repair_id: number;
+  old_status: string;
+  new_status: string;
+  changed_by: number;
+  changed_at: string;
+  notes?: string;
+  changed_by_name?: string;
 }
 
 export interface ApiResponse<T> {
@@ -34,18 +41,73 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
-export const repairsApi = createApi({
-  reducerPath: 'repairsApi',
-  baseQuery: fetchBaseQuery({
+// Custom base query with automatic token refresh for repairs API
+const baseQueryWithReauth: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  const baseQuery = fetchBaseQuery({
     baseUrl: 'http://localhost:3001/api/repairs',
     prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as any).auth.token;
+      const token = (getState() as any).auth.accessToken;
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }
       return headers;
     },
-  }),
+  });
+
+  let result = await baseQuery(args, api, extraOptions);
+
+  // Check if the error is due to token expiration
+  if (result.error && result.error.status === 401) {
+    const errorData = result.error.data as any;
+    if (errorData?.code === 'TOKEN_EXPIRED') {
+      // Try to refresh the token
+      const refreshToken = (api.getState() as any).auth.refreshToken;
+      
+      if (refreshToken) {
+        const refreshResult = await fetchBaseQuery({
+          baseUrl: 'http://localhost:3001/api/auth',
+        })({
+          url: '/refresh',
+          method: 'POST',
+          body: { refreshToken },
+        }, api, extraOptions);
+
+        if (refreshResult.data) {
+          const refreshData = refreshResult.data as any;
+          if (refreshData.success && refreshData.data) {
+            // Update the access token in the store
+            api.dispatch({
+              type: 'auth/updateAccessToken',
+              payload: refreshData.data.accessToken,
+            });
+
+            // Retry the original request with the new token
+            result = await baseQuery(args, api, extraOptions);
+          } else {
+            // Refresh failed, logout user
+            api.dispatch({ type: 'auth/logout' });
+          }
+        } else {
+          // Refresh failed, logout user
+          api.dispatch({ type: 'auth/logout' });
+        }
+      } else {
+        // No refresh token, logout user
+        api.dispatch({ type: 'auth/logout' });
+      }
+    }
+  }
+
+  return result;
+};
+
+export const repairsApi = createApi({
+  reducerPath: 'repairsApi',
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['Repair'],
   endpoints: (builder) => ({
     getRepairs: builder.query<ApiResponse<Repair[]>, void>({
@@ -54,7 +116,7 @@ export const repairsApi = createApi({
     }),
     getRepair: builder.query<ApiResponse<Repair>, number>({
       query: (id) => `/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Repair', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Repair', id }],
     }),
     createRepair: builder.mutation<ApiResponse<{ id: number; message: string }>, Partial<Repair>>({
       query: (repair) => ({
@@ -70,7 +132,7 @@ export const repairsApi = createApi({
         method: 'PUT',
         body: repair,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Repair', id }],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Repair', id }],
     }),
     deleteRepair: builder.mutation<ApiResponse<{ message: string }>, number>({
       query: (id) => ({
@@ -85,7 +147,7 @@ export const repairsApi = createApi({
         method: 'PATCH',
         body: { status, notes },
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Repair', id }],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Repair', id }],
     }),
     getRepairHistory: builder.query<ApiResponse<any[]>, number>({
       query: (id) => `/${id}/history`,

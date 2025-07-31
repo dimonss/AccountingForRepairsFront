@@ -1,0 +1,197 @@
+.sessions-manager {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.sessions-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.sessions-header h2 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.sessions-header p {
+  color: #7f8c8d;
+  margin-bottom: 20px;
+}
+
+.logout-all-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.logout-all-btn:hover {
+  background: #c0392b;
+}
+
+.no-sessions {
+  text-align: center;
+  color: #95a5a6;
+  font-style: italic;
+  padding: 40px;
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.session-card {
+  background: white;
+  border: 1px solid #ecf0f1;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.session-info {
+  flex: 1;
+}
+
+.session-device {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.device-icon {
+  font-size: 24px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.device-details p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.device-details strong {
+  color: #2c3e50;
+}
+
+.session-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.revoke-session-btn {
+  background: #f39c12;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.revoke-session-btn:hover {
+  background: #d68910;
+}
+
+.revoke-confirmation,
+.logout-all-confirmation {
+  text-align: center;
+  padding: 20px;
+}
+
+.revoke-confirmation p,
+.logout-all-confirmation p {
+  margin-bottom: 15px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.cancel-btn {
+  background: #95a5a6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+  background: #7f8c8d;
+}
+
+.confirm-revoke-btn,
+.confirm-logout-all-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.confirm-revoke-btn:hover,
+.confirm-logout-all-btn:hover {
+  background: #c0392b;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+}
+
+.error {
+  color: #e74c3c;
+}
+
+.loading {
+  color: #3498db;
+}
+
+@media (max-width: 768px) {
+  .sessions-manager {
+    padding: 15px;
+  }
+  
+  .session-card {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .session-device {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .device-icon {
+    min-width: auto;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-actions button {
+    width: 100%;
+  }
+} 
