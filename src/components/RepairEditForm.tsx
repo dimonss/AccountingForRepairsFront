@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useUpdateRepairMutation } from '../store/api/repairsApi'
 import type { Repair } from '../store/api/repairsApi'
 import Modal from './Modal'
+import BarcodeScanner from './BarcodeScanner'
 
 interface RepairEditFormProps {
   repair: Repair
@@ -12,6 +13,7 @@ interface RepairEditFormProps {
 
 const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormProps) => {
   const [updateRepair, { isLoading }] = useUpdateRepairMutation()
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
   
   const [formData, setFormData] = useState<Partial<Repair>>({
     device_type: '',
@@ -74,6 +76,22 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
     }
   }
 
+  const handleBarcodeScanned = (scannedCode: string) => {
+    setFormData(prev => ({
+      ...prev,
+      serial_number: scannedCode
+    }))
+    setShowBarcodeScanner(false)
+  }
+
+  const handleOpenScanner = () => {
+    setShowBarcodeScanner(true)
+  }
+
+  const handleCloseScanner = () => {
+    setShowBarcodeScanner(false)
+  }
+
   return (
     <Modal
       isOpen={isOpen}
@@ -133,13 +151,24 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
               {/* Вторая строка - дополнительная информация и статус */}
               <div className="form-group">
                 <label htmlFor="serial_number">Серийный Номер</label>
-                <input
-                  type="text"
-                  id="serial_number"
-                  name="serial_number"
-                  value={formData.serial_number}
-                  onChange={handleChange}
-                />
+                <div className="input-with-scanner">
+                  <input
+                    type="text"
+                    id="serial_number"
+                    name="serial_number"
+                    value={formData.serial_number}
+                    onChange={handleChange}
+                    placeholder="Введите или отсканируйте серийный номер"
+                  />
+                  <button
+                    type="button"
+                    className="scanner-btn"
+                    onClick={handleOpenScanner}
+                    title="Сканировать штрихкод"
+                  >
+                    📷
+                  </button>
+                </div>
               </div>
 
               <div className="form-group">
@@ -277,6 +306,13 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
           </div>
         </div>
       </div>
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScanner
+        isOpen={showBarcodeScanner}
+        onClose={handleCloseScanner}
+        onScan={handleBarcodeScanned}
+      />
     </Modal>
   )
 }
