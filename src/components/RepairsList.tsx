@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useGetRepairsQuery, useDeleteRepairMutation, useUpdateRepairStatusMutation } from '../store/api/repairsApi'
 import type { Repair } from '../store/api/repairsApi'
 import Modal from './Modal'
@@ -10,8 +10,35 @@ const RepairsList = () => {
   
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [repairToDelete, setRepairToDelete] = useState<Repair | null>(null)
+  
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [searchFilter, setSearchFilter] = useState<string>('')
 
   const repairs = repairsResponse?.data || []
+
+  // Filtered repairs using useMemo for performance
+  const filteredRepairs = useMemo(() => {
+    return repairs.filter((repair: Repair) => {
+      // Status filter
+      const statusMatch = statusFilter === 'all' || repair.repair_status === statusFilter
+      
+      // Search filter (client name, phone, email, serial number)
+      const searchTerm = searchFilter.toLowerCase().trim()
+      const searchMatch = !searchTerm || 
+        repair.client_name.toLowerCase().includes(searchTerm) ||
+        repair.client_phone.toLowerCase().includes(searchTerm) ||
+        (repair.client_email && repair.client_email.toLowerCase().includes(searchTerm)) ||
+        (repair.serial_number && repair.serial_number.toLowerCase().includes(searchTerm))
+      
+      return statusMatch && searchMatch
+    })
+  }, [repairs, statusFilter, searchFilter])
+
+  const handleClearFilters = () => {
+    setStatusFilter('all')
+    setSearchFilter('')
+  }
 
   const handleDeleteClick = (repair: Repair) => {
     setRepairToDelete(repair)
@@ -65,62 +92,125 @@ const RepairsList = () => {
     }
   }
 
-  if (isLoading) return <div className="loading">Загрузка ремонтов...</div>
-  if (error) return <div className="error">Ошибка загрузки ремонтов</div>
-
   return (
     <div className="repairs-list">
-      <h2>Список Ремонтов</h2>
-      {repairs.length === 0 ? (
-        <p className="no-repairs">Ремонты не найдены. Добавьте первый ремонт!</p>
-      ) : (
-        <div className="repairs-grid">
-          {repairs.map((repair: Repair) => (
-            <div key={repair.id} className="repair-card">
-              <div className="repair-header">
-                <h3>{repair.device_type} - {repair.brand} {repair.model}</h3>
-                <div 
-                  className="status-badge" 
-                  style={{ backgroundColor: getStatusColor(repair.repair_status) }}
-                >
-                  {getStatusText(repair.repair_status)}
-                </div>
-              </div>
-              
-              <div className="repair-details">
-                <p><strong>Клиент:</strong> {repair.client_name}</p>
-                <p><strong>Телефон:</strong> {repair.client_phone}</p>
-                {repair.client_email && <p><strong>Email:</strong> {repair.client_email}</p>}
-                {repair.serial_number && <p><strong>Серийный номер:</strong> {repair.serial_number}</p>}
-                <p><strong>Проблема:</strong> {repair.issue_description}</p>
-                {repair.estimated_cost && <p><strong>Предварительная стоимость:</strong> {repair.estimated_cost}₽</p>}
-                {repair.actual_cost && <p><strong>Фактическая стоимость:</strong> {repair.actual_cost}₽</p>}
-                {repair.notes && <p><strong>Заметки:</strong> {repair.notes}</p>}
-                <p><strong>Создано:</strong> {new Date(repair.created_at || '').toLocaleDateString('ru-RU')}</p>
-              </div>
-
-              <div className="repair-actions">
-                <select 
-                  value={repair.repair_status} 
-                  onChange={(e) => handleStatusChange(repair.id!, e.target.value)}
-                  className="status-select"
-                >
-                  <option value="pending">Ожидает</option>
-                  <option value="in_progress">В работе</option>
-                  <option value="waiting_parts">Ожидание запчастей</option>
-                  <option value="completed">Завершён</option>
-                  <option value="cancelled">Отменён</option>
-                </select>
-                <button 
-                  onClick={() => handleDeleteClick(repair)}
-                  className="delete-btn"
-                >
-                  Удалить
-                </button>
-              </div>
-            </div>
-          ))}
+      <div className="repairs-header">
+        <h2>Список Ремонтов</h2>
+        <div className="repairs-stats">
+          <span>Всего: {repairs.length}</span>
+          {(statusFilter !== 'all' || searchFilter) && (
+            <span>Найдено: {filteredRepairs.length}</span>
+          )}
         </div>
+      </div>
+
+      {/* Filters Panel */}
+      <div className="filters-panel">
+        <div className="filters-row">
+          <div className="filter-group">
+            <label htmlFor="status-filter">Статус:</label>
+            <select
+              id="status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">Все статусы</option>
+              <option value="pending">Ожидает</option>
+              <option value="in_progress">В работе</option>
+              <option value="waiting_parts">Ожидание запчастей</option>
+              <option value="completed">Завершён</option>
+              <option value="cancelled">Отменён</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label htmlFor="search-filter">Поиск:</label>
+            <input
+              id="search-filter"
+              type="text"
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              placeholder="Имя, телефон, email, серийный номер..."
+              className="filter-input"
+            />
+          </div>
+
+          {(statusFilter !== 'all' || searchFilter) && (
+            <button 
+              onClick={handleClearFilters}
+              className="clear-filters-btn"
+              title="Очистить фильтры"
+            >
+              ✕ Очистить
+            </button>
+          )}
+        </div>
+      </div>
+
+      {isLoading && <div className="loading">Загрузка ремонтов...</div>}
+      {error && <div className="error">Ошибка загрузки ремонтов</div>}
+      
+      {!isLoading && !error && (
+        <>
+          {filteredRepairs.length === 0 ? (
+            <div className="no-repairs">
+              {repairs.length === 0 ? (
+                <p>Ремонты не найдены. Добавьте первый ремонт!</p>
+              ) : (
+                <p>По заданным фильтрам ничего не найдено. Попробуйте изменить критерии поиска.</p>
+              )}
+            </div>
+          ) : (
+            <div className="repairs-grid">
+              {filteredRepairs.map((repair: Repair) => (
+                <div key={repair.id} className="repair-card">
+                  <div className="repair-header">
+                    <h3>{repair.device_type} - {repair.brand} {repair.model}</h3>
+                    <div 
+                      className="status-badge" 
+                      style={{ backgroundColor: getStatusColor(repair.repair_status) }}
+                    >
+                      {getStatusText(repair.repair_status)}
+                    </div>
+                  </div>
+                  
+                  <div className="repair-details">
+                    <p><strong>Клиент:</strong> {repair.client_name}</p>
+                    <p><strong>Телефон:</strong> {repair.client_phone}</p>
+                    {repair.client_email && <p><strong>Email:</strong> {repair.client_email}</p>}
+                    {repair.serial_number && <p><strong>Серийный номер:</strong> {repair.serial_number}</p>}
+                    <p><strong>Проблема:</strong> {repair.issue_description}</p>
+                    {repair.estimated_cost && <p><strong>Предварительная стоимость:</strong> {repair.estimated_cost}₽</p>}
+                    {repair.actual_cost && <p><strong>Фактическая стоимость:</strong> {repair.actual_cost}₽</p>}
+                    {repair.notes && <p><strong>Заметки:</strong> {repair.notes}</p>}
+                    <p><strong>Создано:</strong> {new Date(repair.created_at || '').toLocaleDateString('ru-RU')}</p>
+                  </div>
+
+                  <div className="repair-actions">
+                    <select 
+                      value={repair.repair_status} 
+                      onChange={(e) => handleStatusChange(repair.id!, e.target.value)}
+                      className="status-select"
+                    >
+                      <option value="pending">Ожидает</option>
+                      <option value="in_progress">В работе</option>
+                      <option value="waiting_parts">Ожидание запчастей</option>
+                      <option value="completed">Завершён</option>
+                      <option value="cancelled">Отменён</option>
+                    </select>
+                    <button 
+                      onClick={() => handleDeleteClick(repair)}
+                      className="delete-btn"
+                    >
+                      Удалить
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <Modal 
