@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useGetRepairsQuery, useDeleteRepairMutation, useUpdateRepairStatusMutation } from '../store/api/repairsApi'
 import type { Repair } from '../store/api/repairsApi'
 import Modal from './Modal'
+import RepairEditForm from './RepairEditForm'
 
 const RepairsList = () => {
   const { data: repairsResponse, error, isLoading } = useGetRepairsQuery()
@@ -11,11 +12,18 @@ const RepairsList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [repairToDelete, setRepairToDelete] = useState<Repair | null>(null)
   
+  // Edit form state
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [repairToEdit, setRepairToEdit] = useState<Repair | null>(null)
+  
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [searchFilter, setSearchFilter] = useState<string>('')
 
-  const repairs = repairsResponse?.data || []
+  // Memoize repairs array to prevent recreating on each render
+  const repairs = useMemo(() => {
+    return repairsResponse?.data || []
+  }, [repairsResponse?.data])
 
   // Filtered repairs using useMemo for performance
   const filteredRepairs = useMemo(() => {
@@ -43,6 +51,21 @@ const RepairsList = () => {
   const handleDeleteClick = (repair: Repair) => {
     setRepairToDelete(repair)
     setShowDeleteModal(true)
+  }
+
+  const handleEditClick = (repair: Repair) => {
+    setRepairToEdit(repair)
+    setShowEditForm(true)
+  }
+
+  const handleEditSuccess = () => {
+    setShowEditForm(false)
+    setRepairToEdit(null)
+  }
+
+  const handleEditCancel = () => {
+    setShowEditForm(false)
+    setRepairToEdit(null)
   }
 
   const handleConfirmDelete = async () => {
@@ -200,6 +223,12 @@ const RepairsList = () => {
                       <option value="cancelled">Отменён</option>
                     </select>
                     <button 
+                      onClick={() => handleEditClick(repair)}
+                      className="edit-btn"
+                    >
+                      Редактировать
+                    </button>
+                    <button 
                       onClick={() => handleDeleteClick(repair)}
                       className="delete-btn"
                     >
@@ -246,6 +275,16 @@ const RepairsList = () => {
           </div>
         )}
       </Modal>
+
+      {/* Edit Form */}
+      {repairToEdit && (
+        <RepairEditForm 
+          repair={repairToEdit}
+          isOpen={showEditForm}
+          onSuccess={handleEditSuccess} 
+          onCancel={handleEditCancel} 
+        />
+      )}
     </div>
   )
 }
