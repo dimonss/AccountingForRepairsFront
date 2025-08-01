@@ -6,15 +6,26 @@ import { useLogoutMutation } from './store/api/authApi'
 import ProtectedRoute from './components/ProtectedRoute'
 import RepairsList from './components/RepairsList'
 import RepairForm from './components/RepairForm'
+import Modal from './components/Modal'
 import './App.css'
 
 function App() {
   const [showForm, setShowForm] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const { user, refreshToken } = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch()
   const [logoutMutation] = useLogoutMutation()
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true)
+  }
+
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false)
+  }
+
+  const handleConfirmLogout = async () => {
+    setShowLogoutModal(false)
     try {
       // Call logout API to revoke refresh token
       if (refreshToken) {
@@ -47,7 +58,7 @@ function App() {
             </button>
             <button 
               className="logout-btn"
-              onClick={handleLogout}
+              onClick={handleLogoutClick}
             >
               🚪 Выход
             </button>
@@ -65,6 +76,30 @@ function App() {
           </div>
         </main>
       </div>
+      <Modal
+        isOpen={showLogoutModal}
+        onClose={handleCancelLogout}
+        title="Подтверждение выхода"
+      >
+        <div className="logout-confirmation">
+          <p>Вы уверены, что хотите выйти из системы?</p>
+
+          <div className="modal-actions">
+            <button 
+              className="cancel-btn"
+              onClick={handleCancelLogout}
+            >
+              Отмена
+            </button>
+            <button 
+              className="confirm-logout-btn"
+              onClick={handleConfirmLogout}
+            >
+              Выйти
+            </button>
+          </div>
+        </div>
+      </Modal>
     </ProtectedRoute>
   )
 }

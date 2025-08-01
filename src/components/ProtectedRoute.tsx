@@ -5,7 +5,7 @@ import LoginForm from './LoginForm';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: 'admin' | 'manager' | 'employee';
+  requiredRole?: 'admin' | 'manager' | 'technician';
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
@@ -18,7 +18,11 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
 
   // If role is required and user doesn't have it, show access denied
   if (requiredRole) {
-    const roleHierarchy = { admin: 3, manager: 2, employee: 1 };
+    const roleHierarchy = {
+      admin: 3,
+      manager: 2,
+      technician: 1
+    };
     const userLevel = roleHierarchy[user.role];
     const requiredLevel = roleHierarchy[requiredRole];
 

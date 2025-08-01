@@ -428,6 +428,72 @@ body {
   border: 1px solid rgba(229, 62, 62, 0.2);
 }
 
+/* Modal styles for logout confirmation */
+.logout-confirmation {
+  text-align: center;
+  padding: 20px;
+}
+
+.logout-confirmation p {
+  margin: 0 0 15px 0;
+  color: #333;
+  line-height: 1.5;
+}
+
+.logout-confirmation p:first-child {
+  font-size: 16px;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.logout-confirmation p:last-of-type {
+  font-size: 14px;
+  color: #7f8c8d;
+  margin-bottom: 25px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.cancel-btn {
+  background-color: #ecf0f1;
+  color: #2c3e50;
+  border: 1px solid #bdc3c7;
+}
+
+.cancel-btn:hover {
+  background-color: #d5dbdb;
+  border-color: #95a5a6;
+}
+
+.confirm-logout-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.confirm-logout-btn:hover {
+  background-color: #c0392b;
+}
+
+.confirm-logout-btn:active {
+  transform: translateY(1px);
+}
+
 /* Responsive design */
 @media (min-width: 1920px) {
   .app-main {
