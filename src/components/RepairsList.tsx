@@ -3,6 +3,7 @@ import { useGetRepairsQuery, useDeleteRepairMutation, useUpdateRepairStatusMutat
 import type { Repair } from '../store/api/repairsApi'
 import Modal from './Modal'
 import RepairEditForm from './RepairEditForm'
+import { BarcodeScanner } from './BarcodeScanner'
 
 const RepairsList = () => {
   const { data: repairsResponse, error, isLoading } = useGetRepairsQuery()
@@ -19,6 +20,7 @@ const RepairsList = () => {
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [searchFilter, setSearchFilter] = useState<string>('')
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
 
   // Memoize repairs array to prevent recreating on each render
   const repairs = useMemo(() => {
@@ -46,6 +48,19 @@ const RepairsList = () => {
   const handleClearFilters = () => {
     setStatusFilter('all')
     setSearchFilter('')
+  }
+
+  const handleBarcodeScanned = (scannedCode: string) => {
+    setSearchFilter(scannedCode)
+    setShowBarcodeScanner(false)
+  }
+
+  const handleOpenScanner = () => {
+    setShowBarcodeScanner(true)
+  }
+
+  const handleCloseScanner = () => {
+    setShowBarcodeScanner(false)
   }
 
   const handleDeleteClick = (repair: Repair) => {
@@ -149,14 +164,24 @@ const RepairsList = () => {
 
           <div className="filter-group">
             <label htmlFor="search-filter">Поиск:</label>
-            <input
-              id="search-filter"
-              type="text"
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              placeholder="Имя, телефон, email, серийный номер..."
-              className="filter-input"
-            />
+            <div className="search-input-container">
+              <input
+                id="search-filter"
+                type="text"
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                placeholder="Имя, телефон, email, серийный номер..."
+                className="filter-input"
+              />
+              <button
+                type="button"
+                onClick={handleOpenScanner}
+                className="barcode-scan-btn"
+                title="Сканировать штрих-код"
+              >
+                📷
+              </button>
+            </div>
           </div>
 
           {(statusFilter !== 'all' || searchFilter) && (
@@ -285,6 +310,13 @@ const RepairsList = () => {
           onCancel={handleEditCancel} 
         />
       )}
+
+      {/* Barcode Scanner */}
+      <BarcodeScanner
+        isOpen={showBarcodeScanner}
+        onClose={handleCloseScanner}
+        onScan={handleBarcodeScanned}
+      />
     </div>
   )
 }
