@@ -38,8 +38,20 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
       } else {
         setError(result.error || 'Ошибка входа');
       }
-    } catch (err: any) {
-      setError(err?.data?.error || 'Ошибка входа. Попробуйте снова.');
+    } catch (err: unknown) {
+      let errorMessage = 'Ошибка входа. Попробуйте снова.';
+      
+      if (err && typeof err === 'object' && 'data' in err) {
+        const errorData = (err as { data: unknown }).data;
+        if (errorData && typeof errorData === 'object' && 'error' in errorData) {
+          const error = (errorData as { error?: string }).error;
+          if (error) {
+            errorMessage = error;
+          }
+        }
+      }
+      
+      setError(errorMessage);
     }
   };
 

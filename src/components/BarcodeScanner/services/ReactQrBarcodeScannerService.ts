@@ -2,17 +2,22 @@ import React from 'react'
 import BarcodeScannerComponent from 'react-qr-barcode-scanner'
 import type { IScannerService, IScanResult, IScannerError } from '../interfaces/IScannerService'
 
+// Интерфейс для результата от библиотеки react-qr-barcode-scanner
+interface BarcodeScannerResult {
+  getText?: () => string
+  getFormat?: () => string
+  text?: string
+  format?: string
+}
+
 export class ReactQrBarcodeScannerService implements IScannerService {
-  private isScanning: boolean = false
   private onResult?: (result: IScanResult) => void
   private onError?: (error: IScannerError) => void
 
   async startScanning(): Promise<void> {
-    this.isScanning = true
   }
 
   stopScanning(): void {
-    this.isScanning = false
   }
 
   isSupported(): boolean {
@@ -30,12 +35,12 @@ export class ReactQrBarcodeScannerService implements IScannerService {
     this.onError = onError
   }
 
-  private handleScanResult(result: any): void {
+  private handleScanResult(result: BarcodeScannerResult | string): void {
     if (!result || !this.onResult) return
 
     const scanResult: IScanResult = {
-      text: result.getText ? result.getText() : result,
-      format: result.getFormat ? result.getFormat() : 'UNKNOWN',
+      text: typeof result === 'string' ? result : (result.getText ? result.getText() : result.text || ''),
+      format: typeof result === 'string' ? 'UNKNOWN' : (result.getFormat ? result.getFormat() : result.format || 'UNKNOWN'),
       timestamp: new Date()
     }
 
@@ -100,8 +105,9 @@ export class ReactQrBarcodeScannerService implements IScannerService {
     return React.createElement(BarcodeScannerComponent, {
       width,
       height,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onUpdate: (err: unknown, result: any) => {
-        if (result && result.getText) {
+        if (result) {
           this.handleScanResult(result)
         } else if (err) {
           this.handleScanError(err)
