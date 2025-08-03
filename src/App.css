@@ -106,6 +106,12 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+  white-space: nowrap;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
 }
 
 .logout-btn:hover {
@@ -324,6 +330,8 @@ body {
   padding: 20px;
   margin-bottom: 25px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .filters-row {
@@ -331,6 +339,8 @@ body {
   flex-wrap: wrap;
   gap: 20px;
   align-items: end;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .filter-group {
@@ -338,6 +348,8 @@ body {
   flex-direction: column;
   gap: 5px;
   min-width: 200px;
+  flex: 1;
+  max-width: 100%;
 }
 
 .filter-group label {
@@ -365,7 +377,9 @@ body {
 }
 
 .filter-input {
-  min-width: 250px;
+  min-width: 200px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .filter-input::placeholder {
@@ -415,9 +429,11 @@ body {
 
 .repairs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .repair-card {
@@ -427,6 +443,10 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .repair-card:hover {
@@ -540,6 +560,8 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
+  white-space: nowrap;
+  min-width: 80px;
 }
 
 .delete-btn:hover {
@@ -646,6 +668,8 @@ body {
   font-weight: 500;
   transition: all 0.2s ease;
   margin-right: 8px;
+  white-space: nowrap;
+  min-width: 80px;
 }
 
 .edit-btn:hover {
@@ -815,6 +839,35 @@ body {
 
 /* Responsive Design for Edit Form */
 @media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+    padding: 1.5rem 1rem;
+  }
+
+  .header-left {
+    align-items: center;
+  }
+
+  .app-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .add-repair-btn,
+  .logout-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
   .repairs-header {
     flex-direction: column;
     align-items: stretch;
@@ -832,6 +885,8 @@ body {
 
   .filter-group {
     min-width: unset;
+    flex: 1;
+    width: 100%;
   }
 
   .filter-input {
@@ -844,18 +899,52 @@ body {
     width: fit-content;
   }
 
+  .repairs-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .repair-card {
+    padding: 1rem;
+  }
+
+  .repair-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .repair-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .status-select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   /* Edit modal responsive adjustments */
   .repair-edit-modal-content {
-    height: 90vh; /* Увеличено с 80vh до 90vh для мобильных */
-    min-height: 500px; /* Уменьшено с 400px для баланса на малых экранах */
+    height: 95vh; /* Увеличено для мобильных */
+    min-height: 400px;
+    max-height: none;
+    width: 100%;
+    max-width: 100%;
   }
 
   .repair-edit-scrollable {
-    padding: 20px 15px 15px 15px;
+    padding: 15px 10px 10px 10px;
   }
 
   .repair-edit-footer {
-    padding: 15px 20px;
+    padding: 10px 15px;
   }
 
   .repair-edit-footer .form-actions {
@@ -866,6 +955,8 @@ body {
   .repair-edit-footer .form-actions button {
     width: 100%;
     min-width: unset;
+    padding: 12px 20px;
+    font-size: 14px;
   }
 }
 
@@ -1135,5 +1226,72 @@ body {
   .barcode-scan-btn {
     width: 100%;
     height: 44px;
+  }
+}
+
+/* Extra small screens (375px - 480px) */
+@media (max-width: 480px) {
+  .app-main {
+    padding: 0.75rem;
+  }
+
+  .repairs-list {
+    padding: 1rem;
+  }
+
+  .filters-panel {
+    padding: 15px;
+  }
+
+  .repair-card {
+    padding: 0.75rem;
+  }
+
+  .repair-header h3 {
+    font-size: 1rem;
+  }
+
+  .repair-details p {
+    font-size: 0.85rem;
+  }
+
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  /* Модальное окно редактирования для маленьких экранов */
+  .repair-edit-modal-content {
+    height: 100vh;
+    min-height: 300px;
+    border-radius: 0;
+  }
+
+  .repair-edit-scrollable {
+    padding: 10px 8px 8px 8px;
+  }
+
+  .repair-edit-footer {
+    padding: 8px 10px;
+  }
+
+  .repair-edit-footer .form-actions button {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  /* Кнопки в хедере для маленьких экранов */
+  .app-header {
+    padding: 1rem 0.75rem;
+  }
+
+  .header-actions {
+    gap: 0.5rem;
+  }
+
+  .add-repair-btn,
+  .logout-btn {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
   }
 }

@@ -175,16 +175,16 @@
   .scanner-viewport {
     height: 250px;
   }
-  
+
   .scanner-frame {
     width: 150px;
     height: 150px;
   }
-  
+
   .error-actions {
     flex-direction: column;
   }
-  
+
   .retry-btn,
   .cancel-scan-btn {
     width: 100%;

@@ -7,6 +7,8 @@
   align-items: center;
   justify-content: center;
   animation: modal-fade-in 0.2s;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 @keyframes modal-fade-in {
@@ -27,6 +29,8 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .modal-title {
@@ -61,11 +65,18 @@
 }
 
 @media (max-width: 600px) {
-  .modal-window {
-    padding: 1.2rem 0.5rem 1rem 0.5rem;
-    min-width: 0;
-    max-width: 99vw;
+  .modal-overlay {
+    padding: 0.5rem;
   }
+  
+  .modal-window {
+    padding: 1.2rem 1rem 1rem 1rem;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+  }
+  
   .modal-title {
     font-size: 1.1rem;
   }
@@ -143,12 +154,29 @@
 }
 
 @media (max-width: 480px) {
+  .modal-overlay {
+    padding: 0.25rem;
+  }
+  
+  .modal-window {
+    padding: 1rem 0.75rem 0.75rem 0.75rem;
+    border-radius: 0.75rem;
+  }
+  
+  .modal-title {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  
   .modal-actions {
     flex-direction: column;
+    gap: 0.75rem;
   }
   
   .cancel-btn,
   .confirm-delete-btn {
     width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
 } 
