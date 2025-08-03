@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useCreateRepairMutation } from '../store/api/repairsApi'
 import type { Repair } from '../store/api/repairsApi'
-import BarcodeScanner from './BarcodeScanner'
+import { BarcodeScanner } from './BarcodeScanner'
 
 interface RepairFormProps {
   onSuccess: () => void

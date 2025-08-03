@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useUpdateRepairMutation } from '../store/api/repairsApi'
 import type { Repair } from '../store/api/repairsApi'
 import Modal from './Modal'
-import BarcodeScanner from './BarcodeScanner'
+import { BarcodeScanner } from './BarcodeScanner'
 
 interface RepairEditFormProps {
   repair: Repair
