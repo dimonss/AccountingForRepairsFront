@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../store';
+import { getRepairsApiUrl, getAuthApiUrl } from '../../config/api.config';
 
 export interface Repair {
   id?: number;
@@ -69,7 +70,7 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   const baseQuery = fetchBaseQuery({
-    baseUrl: 'http://localhost:3001/api/repairs',
+    baseUrl: getRepairsApiUrl(),
     prepareHeaders: (headers, { getState }) => {
       const state = getState() as RootState;
       const token = state.auth.accessToken;
@@ -93,7 +94,7 @@ const baseQueryWithReauth: BaseQueryFn<
       
       if (refreshToken) {
         const refreshResult = await fetchBaseQuery({
-          baseUrl: 'http://localhost:3001/api/auth',
+          baseUrl: getAuthApiUrl(),
         })({
           url: '/refresh',
           method: 'POST',
