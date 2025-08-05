@@ -150,15 +150,15 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     }
   };
 
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-  };
+  // const stopCamera = () => {
+  //   if (streamRef.current) {
+  //     streamRef.current.getTracks().forEach(track => track.stop());
+  //     streamRef.current = null;
+  //   }
+  //   if (videoRef.current) {
+  //     videoRef.current.srcObject = null;
+  //   }
+  // };
 
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
