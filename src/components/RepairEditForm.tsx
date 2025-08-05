@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useUpdateRepairMutation } from '../store/api/repairsApi'
-import type { Repair } from '../store/api/repairsApi'
+import type { Repair, RepairPhoto } from '../store/api/repairsApi'
 import Modal from './Modal'
 import { BarcodeScanner } from './BarcodeScanner'
+import { PhotoUpload } from './PhotoUpload'
 
 interface RepairEditFormProps {
   repair: Repair
@@ -27,7 +28,8 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
     repair_status: 'pending',
     estimated_cost: 0,
     actual_cost: 0,
-    notes: ''
+    notes: '',
+    photos: []
   })
 
   // Pre-populate form with existing repair data
@@ -45,7 +47,8 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
         repair_status: repair.repair_status || 'pending',
         estimated_cost: repair.estimated_cost || 0,
         actual_cost: repair.actual_cost || 0,
-        notes: repair.notes || ''
+        notes: repair.notes || '',
+        photos: repair.photos || []
       })
     }
   }, [repair])
@@ -82,6 +85,13 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
       serial_number: scannedCode
     }))
     setShowBarcodeScanner(false)
+  }
+
+  const handlePhotosChange = (photos: RepairPhoto[]) => {
+    setFormData(prev => ({
+      ...prev,
+      photos
+    }))
   }
 
   const handleOpenScanner = () => {
@@ -279,6 +289,15 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
                 value={formData.notes}
                 onChange={handleChange}
                 rows={3}
+              />
+            </div>
+
+            <div className="form-group full-width">
+              <PhotoUpload
+                photos={formData.photos || []}
+                onPhotosChange={handlePhotosChange}
+                maxPhotos={8}
+                disabled={isLoading}
               />
             </div>
           </form>

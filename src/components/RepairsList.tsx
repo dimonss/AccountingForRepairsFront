@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react'
 import { useGetRepairsQuery, useDeleteRepairMutation, useUpdateRepairStatusMutation } from '../store/api/repairsApi'
-import type { Repair } from '../store/api/repairsApi'
+import type { Repair, RepairPhoto } from '../store/api/repairsApi'
 import Modal from './Modal'
 import RepairEditForm from './RepairEditForm'
 import { BarcodeScanner } from './BarcodeScanner'
+import { PhotoGallery } from './PhotoGallery'
 
 const RepairsList = () => {
   const { data: repairsResponse, error, isLoading } = useGetRepairsQuery()
@@ -21,6 +22,11 @@ const RepairsList = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [searchFilter, setSearchFilter] = useState<string>('')
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
+  
+  // Photo gallery state
+  const [showPhotoGallery, setShowPhotoGallery] = useState(false)
+  const [galleryPhotos, setGalleryPhotos] = useState<RepairPhoto[]>([])
+  const [galleryInitialIndex, setGalleryInitialIndex] = useState(0)
 
   // Memoize repairs array to prevent recreating on each render
   const repairs = useMemo(() => {
@@ -53,6 +59,18 @@ const RepairsList = () => {
   const handleBarcodeScanned = (scannedCode: string) => {
     setSearchFilter(scannedCode)
     setShowBarcodeScanner(false)
+  }
+
+  const handlePhotoClick = (photos: RepairPhoto[], initialIndex: number) => {
+    setGalleryPhotos(photos)
+    setGalleryInitialIndex(initialIndex)
+    setShowPhotoGallery(true)
+  }
+
+  const handleClosePhotoGallery = () => {
+    setShowPhotoGallery(false)
+    setGalleryPhotos([])
+    setGalleryInitialIndex(0)
   }
 
   const handleOpenScanner = () => {
@@ -233,6 +251,35 @@ const RepairsList = () => {
                     {repair.actual_cost && <p><strong>Фактическая стоимость:</strong> {repair.actual_cost}₽</p>}
                     {repair.notes && <p><strong>Заметки:</strong> {repair.notes}</p>}
                     <p><strong>Создано:</strong> {new Date(repair.created_at || '').toLocaleDateString('ru-RU')}</p>
+                    
+                    {repair.photos && repair.photos.length > 0 && (
+                      <div className="repair-photos">
+                        <p><strong>Фотографии ({repair.photos.length}):</strong></p>
+                        <div className="photos-preview">
+                          {repair.photos.slice(0, 3).map((photo, index) => (
+                            <div 
+                              key={index} 
+                              className="photo-thumbnail"
+                              onClick={() => handlePhotoClick(repair.photos!, index)}
+                            >
+                              <img 
+                                src={photo.url} 
+                                alt={photo.caption || photo.filename}
+                                title={photo.caption || photo.filename}
+                              />
+                            </div>
+                          ))}
+                          {repair.photos.length > 3 && (
+                            <div 
+                              className="more-photos"
+                              onClick={() => handlePhotoClick(repair.photos!, 3)}
+                            >
+                              +{repair.photos.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="repair-actions">
@@ -316,6 +363,14 @@ const RepairsList = () => {
         isOpen={showBarcodeScanner}
         onClose={handleCloseScanner}
         onScan={handleBarcodeScanned}
+      />
+
+      {/* Photo Gallery */}
+      <PhotoGallery
+        photos={galleryPhotos}
+        isOpen={showPhotoGallery}
+        onClose={handleClosePhotoGallery}
+        initialIndex={galleryInitialIndex}
       />
     </div>
   )

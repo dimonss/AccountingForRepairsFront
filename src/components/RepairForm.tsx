@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useCreateRepairMutation } from '../store/api/repairsApi'
-import type { Repair } from '../store/api/repairsApi'
+import type { Repair, RepairPhoto } from '../store/api/repairsApi'
 import { BarcodeScanner } from './BarcodeScanner'
+import { PhotoUpload } from './PhotoUpload'
 
 interface RepairFormProps {
   onSuccess: () => void
@@ -21,7 +22,8 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
     client_email: '',
     issue_description: '',
     estimated_cost: 0,
-    notes: ''
+    notes: '',
+    photos: []
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -48,6 +50,13 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
     setShowBarcodeScanner(false)
   }
 
+  const handlePhotosChange = (photos: RepairPhoto[]) => {
+    setFormData(prev => ({
+      ...prev,
+      photos
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -65,7 +74,8 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
         client_email: '',
         issue_description: '',
         estimated_cost: 0,
-        notes: ''
+        notes: '',
+        photos: []
       })
     } catch (error) {
       console.error('Failed to create repair:', error)
@@ -212,6 +222,15 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
             value={formData.notes}
             onChange={handleChange}
             rows={3}
+          />
+        </div>
+
+        <div className="form-group full-width">
+          <PhotoUpload
+            photos={formData.photos || []}
+            onPhotosChange={handlePhotosChange}
+            maxPhotos={8}
+            disabled={isLoading}
           />
         </div>
 

@@ -3,6 +3,14 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 import type { RootState } from '../store';
 import { getRepairsApiUrl, getAuthApiUrl } from '../../config/api.config';
 
+export interface RepairPhoto {
+  id?: number;
+  url: string;
+  filename: string;
+  caption?: string;
+  uploaded_at?: string;
+}
+
 export interface Repair {
   id?: number;
   device_type: string;
@@ -17,6 +25,7 @@ export interface Repair {
   estimated_cost?: number;
   actual_cost?: number;
   notes?: string;
+  photos?: RepairPhoto[];
   created_at?: string;
   updated_at?: string;
   created_by?: number;
