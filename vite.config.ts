@@ -9,5 +9,11 @@ export default defineConfig({
     host: true,
     port: 5173,
     open: false,
+    proxy: {
+      '/photos': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      }
+    }
   }
 })

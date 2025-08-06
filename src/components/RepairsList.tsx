@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useGetRepairsQuery, useDeleteRepairMutation, useUpdateRepairStatusMutation } from '../store/api/repairsApi'
 import type { Repair, RepairPhoto } from '../store/api/repairsApi'
-import { getPhotoUrl } from '../config/api.config'
 import Modal from './Modal'
 import RepairEditForm from './RepairEditForm'
 import { BarcodeScanner } from './BarcodeScanner'
@@ -264,7 +263,7 @@ const RepairsList = () => {
                               onClick={() => handlePhotoClick(repair.photos!, index)}
                             >
                               <img 
-                                src={getPhotoUrl(photo.url)} 
+                                src={photo.url} 
                                 alt={photo.caption || photo.filename}
                                 title={photo.caption || photo.filename}
                               />

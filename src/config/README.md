@@ -62,17 +62,6 @@ For different deployment environments, you can create different `.env` files:
 - `.env.production` - Production environment
 - `.env.staging` - Staging environment
 
-### Photo URLs
-
-The application now uses the same base URL configuration for repair photos. Photos are served from `/photos/{filename}` endpoint and automatically use the configured `VITE_API_BASE_URL`.
-
-**Examples:**
-- Local: `http://localhost:3001/photos/uuid.jpg`
-- Production (same domain): `https://yourdomain.com/photos/uuid.jpg`  
-- Production (subpath): `https://yourdomain.com/repairs_accounting/photos/uuid.jpg`
-
-The `getPhotoUrl()` helper function automatically constructs full URLs for photos using the environment configuration.
-
 ### Note
 
 Make sure to add `.env.local` to your `.gitignore` file to avoid committing sensitive configuration values. 

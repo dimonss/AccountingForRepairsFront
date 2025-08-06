@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import type { RepairPhoto } from '../store/api/repairsApi';
-import { getPhotoUrl } from '../config/api.config';
 import { CameraCapture } from './CameraCapture';
 import { generateUUID, compressImage, formatFileSize, getBase64Size } from '../utils/imageUtils';
 import './PhotoUpload.css';
@@ -207,7 +206,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
           {photos.map((photo, index) => (
             <div key={index} className="photo-item">
               <div className="photo-preview">
-                <img src={getPhotoUrl(photo.url)} alt={photo.filename} />
+                <img src={photo.url} alt={photo.filename} />
                 <button
                   type="button"
                   onClick={() => removePhoto(index)}

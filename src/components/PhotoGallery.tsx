@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { RepairPhoto } from '../store/api/repairsApi';
-import { getPhotoUrl } from '../config/api.config';
 import Modal from './Modal';
 import './PhotoGallery.css';
 
@@ -62,7 +61,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
         <div className="gallery-main">
           <div className="main-photo">
             <img
-              src={getPhotoUrl(currentPhoto.url)}
+              src={currentPhoto.url}
               alt={currentPhoto.caption || currentPhoto.filename}
             />
             
@@ -115,7 +114,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                 onClick={() => goToIndex(index)}
               >
                 <img
-                  src={getPhotoUrl(photo.url)}
+                  src={photo.url}
                   alt={photo.caption || photo.filename}
                   title={photo.caption || photo.filename}
                 />

@@ -14,17 +14,4 @@ export const API_CONFIG = {
 
 // Helper functions to get full URLs
 export const getAuthApiUrl = () => `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.auth}`;
-export const getRepairsApiUrl = () => `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.repairs}`;
-
-// Helper function to get full photo URL
-export const getPhotoUrl = (relativePath: string): string => {
-  // If it's already a full URL (data: or http:) or empty, return as is
-  if (!relativePath || relativePath.startsWith('data:') || relativePath.startsWith('http')) {
-    return relativePath;
-  }
-  
-  // If relativePath starts with /, remove it to avoid double slashes
-  const cleanPath = relativePath.startsWith('/') ? relativePath.slice(1) : relativePath;
-  
-  return `${API_CONFIG.baseUrl}/${cleanPath}`;
-}; 
+export const getRepairsApiUrl = () => `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.repairs}`; 
