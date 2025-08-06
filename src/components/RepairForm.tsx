@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useCreateRepairMutation } from '../store/api/repairsApi'
+import { useCreateRepairMutation, useUploadRepairPhotosMutation } from '../store/api/repairsApi'
 import type { Repair, RepairPhoto } from '../store/api/repairsApi'
 import { BarcodeScanner } from './BarcodeScanner'
 import { PhotoUpload } from './PhotoUpload'
@@ -10,6 +10,7 @@ interface RepairFormProps {
 
 const RepairForm = ({ onSuccess }: RepairFormProps) => {
   const [createRepair, { isLoading }] = useCreateRepairMutation()
+  const [uploadPhotos] = useUploadRepairPhotosMutation()
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
   
   const [formData, setFormData] = useState<Partial<Repair>>({
@@ -61,7 +62,20 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
     e.preventDefault()
     
     try {
-      await createRepair(formData).unwrap()
+      // Create repair without photos first
+      const { photos, ...repairData } = formData
+      const result = await createRepair(repairData).unwrap()
+      
+      // Upload photos if any exist and repair was created successfully
+      if (photos && photos.length > 0 && result.data?.id) {
+        try {
+          await uploadPhotos({ repairId: result.data.id, photos }).unwrap()
+        } catch (photoError) {
+          console.error('Failed to upload photos:', photoError)
+          // Don't fail the whole operation if photo upload fails
+        }
+      }
+      
       onSuccess()
       // Reset form
       setFormData({

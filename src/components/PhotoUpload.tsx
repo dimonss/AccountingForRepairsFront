@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import type { RepairPhoto } from '../store/api/repairsApi';
+import { getPhotoUrl } from '../config/api.config';
 import { CameraCapture } from './CameraCapture';
+import { generateUUID, compressImage, formatFileSize, getBase64Size } from '../utils/imageUtils';
 import './PhotoUpload.css';
 
 interface PhotoUploadProps {
@@ -21,7 +23,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (files: FileList) => {
+  const handleFileSelect = async (files: FileList) => {
     if (disabled || photos.length >= maxPhotos) return;
 
     const remainingSlots = maxPhotos - photos.length;
@@ -30,35 +32,53 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
     setIsUploading(true);
     
     const newPhotos: RepairPhoto[] = [];
-    let processedCount = 0;
 
-    filesToProcess.forEach((file) => {
+    for (const file of filesToProcess) {
       if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            newPhotos.push({
-              url: e.target.result as string,
-              filename: file.name,
-              caption: '',
-              uploaded_at: new Date().toISOString()
-            });
-          }
-          
-          processedCount++;
-          if (processedCount === filesToProcess.length) {
-            onPhotosChange([...photos, ...newPhotos]);
-            setIsUploading(false);
-          }
-        };
-        reader.readAsDataURL(file);
-      } else {
-        processedCount++;
-        if (processedCount === filesToProcess.length) {
-          setIsUploading(false);
+        try {
+          // Читаем файл
+          const originalDataURL = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              if (e.target?.result) {
+                resolve(e.target.result as string);
+              } else {
+                reject(new Error('Failed to read file'));
+              }
+            };
+            reader.onerror = () => reject(new Error('File read error'));
+            reader.readAsDataURL(file);
+          });
+
+          const originalSize = getBase64Size(originalDataURL);
+          console.log(`📁 Original file "${file.name}": ${formatFileSize(originalSize)}`);
+
+          // Сжимаем если больше 2MB
+          const compressedDataURL = originalSize > 2 * 1024 * 1024 
+            ? await compressImage(file)
+            : originalDataURL;
+
+          const finalSize = getBase64Size(compressedDataURL);
+          console.log(`✅ Processed file: ${formatFileSize(finalSize)}`);
+
+          // Генерируем UUID имя файла
+          const uuid = generateUUID();
+          const fileExtension = file.name.split('.').pop() || 'jpg';
+          const filename = `${uuid}.${fileExtension}`;
+
+          newPhotos.push({
+            url: compressedDataURL,
+            filename: filename,
+            uploaded_at: new Date().toISOString()
+          });
+        } catch (error) {
+          console.error('Failed to process file:', file.name, error);
         }
       }
-    });
+    }
+
+    onPhotosChange([...photos, ...newPhotos]);
+    setIsUploading(false);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -187,7 +207,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
           {photos.map((photo, index) => (
             <div key={index} className="photo-item">
               <div className="photo-preview">
-                <img src={photo.url} alt={photo.filename} />
+                <img src={getPhotoUrl(photo.url)} alt={photo.filename} />
                 <button
                   type="button"
                   onClick={() => removePhoto(index)}

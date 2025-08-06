@@ -10,12 +10,12 @@ Create a `.env.local` file in the root of the frontend project (`AccountingForRe
 
 ```
 # Backend API Base URL
-VITE_API_BASE_URL=http://localhost:3001/api
+VITE_API_BASE_URL=http://localhost:3001
 ```
 
 ### Available Environment Variables
 
-- `VITE_API_BASE_URL` - The base URL for the backend API (default: `http://localhost:3001/api`)
+- `VITE_API_BASE_URL` - The base URL for the backend API (default: `http://localhost:3001`)
 
 ### Configuration File
 
@@ -30,27 +30,27 @@ The configuration is managed in `src/config/api.config.ts`:
 #### 1. Local Development
 ```bash
 # .env.local
-VITE_API_BASE_URL=http://localhost:3001/api
+VITE_API_BASE_URL=http://localhost:3001
 ```
 
-#### 2. Production - Same Domain (API at /api/)
+#### 2. Production - Same Domain (root)
 ```bash
 # .env.production
-VITE_API_BASE_URL=/api
+VITE_API_BASE_URL=
 ```
-The frontend will be served from `/repairs_accounting/` and API calls will go to `/api/`
+Both frontend and backend served from the same domain root
 
 #### 3. Production - API with same base path
 ```bash
 # .env.production
-VITE_API_BASE_URL=/repairs_accounting/api
+VITE_API_BASE_URL=/repairs_accounting
 ```
 Both frontend and API under the same base path
 
 #### 4. Production - Different Domain
 ```bash
 # .env.production
-VITE_API_BASE_URL=https://api.yourdomain.com/api
+VITE_API_BASE_URL=https://api.yourdomain.com
 ```
 
 ### Different Environment Files
@@ -61,6 +61,17 @@ For different deployment environments, you can create different `.env` files:
 - `.env.development` - Development environment
 - `.env.production` - Production environment
 - `.env.staging` - Staging environment
+
+### Photo URLs
+
+The application now uses the same base URL configuration for repair photos. Photos are served from `/photos/{filename}` endpoint and automatically use the configured `VITE_API_BASE_URL`.
+
+**Examples:**
+- Local: `http://localhost:3001/photos/uuid.jpg`
+- Production (same domain): `https://yourdomain.com/photos/uuid.jpg`  
+- Production (subpath): `https://yourdomain.com/repairs_accounting/photos/uuid.jpg`
+
+The `getPhotoUrl()` helper function automatically constructs full URLs for photos using the environment configuration.
 
 ### Note
 

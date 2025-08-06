@@ -195,6 +195,27 @@
   pointer-events: none;
 }
 
+.camera-capture-btn.processing {
+  animation: processing-pulse 1s infinite;
+  border-color: #00ff88;
+}
+
+.processing-spinner {
+  font-size: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes processing-pulse {
+  0%, 100% {
+    transform: scale(1);
+    border-color: #00ff88;
+  }
+  50% {
+    transform: scale(1.05);
+    border-color: #ffffff;
+  }
+}
+
 .camera-capture-btn:hover:not(:disabled) {
   transform: scale(1.1);
   border-color: #00ff88;

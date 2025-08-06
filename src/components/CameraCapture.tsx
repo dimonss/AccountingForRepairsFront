@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import type { RepairPhoto } from '../store/api/repairsApi';
+import { generateUUID, compressImage, formatFileSize, getBase64Size } from '../utils/imageUtils';
 import './CameraCapture.css';
 
 interface CameraCaptureProps {
@@ -22,6 +23,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const startCamera = useCallback(async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -160,38 +162,59 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   //   }
   // };
 
-  const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+  const capturePhoto = async () => {
+    if (!videoRef.current || !canvasRef.current || isProcessing) return;
 
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
+    setIsProcessing(true);
 
-    if (!context) return;
+    try {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
 
-    // Устанавливаем размер canvas равный размеру видео
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+      if (!context) {
+        throw new Error('Canvas context not available');
+      }
 
-    // Рисуем кадр из видео на canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Устанавливаем размер canvas равный размеру видео
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
-    // Конвертируем в base64
-    const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-    
-    // Генерируем имя файла
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = `camera-${timestamp}.jpg`;
+      // Рисуем кадр из видео на canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const photo: RepairPhoto = {
-      url: dataURL,
-      filename: filename,
-      caption: '',
-      uploaded_at: new Date().toISOString()
-    };
+      // Получаем исходное изображение
+      const originalDataURL = canvas.toDataURL('image/jpeg', 0.9);
+      const originalSize = getBase64Size(originalDataURL);
+      
+      console.log(`📸 Original photo: ${formatFileSize(originalSize)}`);
 
-    onCapture(photo);
-    onClose();
+      // Сжимаем если больше 2MPX
+      const compressedDataURL = originalSize > 2 * 1024 * 1024 
+        ? await compressImage(originalDataURL)
+        : originalDataURL;
+
+      const finalSize = getBase64Size(compressedDataURL);
+      console.log(`✅ Final photo: ${formatFileSize(finalSize)}`);
+      
+      // Генерируем UUID имя файла
+      const uuid = generateUUID();
+      const filename = `${uuid}.jpg`;
+
+      const photo: RepairPhoto = {
+        url: compressedDataURL,
+        filename: filename,
+        uploaded_at: new Date().toISOString()
+      };
+
+      onCapture(photo);
+      onClose();
+    } catch (error) {
+      console.error('Failed to capture photo:', error);
+      setError('Не удалось сделать фото. Попробуйте еще раз.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const switchCamera = () => {
@@ -273,11 +296,15 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
                   </button>
 
                 <button
-                  className="camera-capture-btn"
+                  className={`camera-capture-btn ${isProcessing ? 'processing' : ''}`}
                   onClick={capturePhoto}
-                  disabled={isLoading}
+                  disabled={isLoading || isProcessing}
                 >
-                  <div className="capture-circle"/>
+                  {isProcessing ? (
+                    <div className="processing-spinner">📸</div>
+                  ) : (
+                    <div className="capture-circle"/>
+                  )}
                 </button>
                 
                 <button

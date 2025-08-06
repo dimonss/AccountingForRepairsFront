@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useUpdateRepairMutation } from '../store/api/repairsApi'
+import { useUpdateRepairMutation, useUploadRepairPhotosMutation } from '../store/api/repairsApi'
 import type { Repair, RepairPhoto } from '../store/api/repairsApi'
 import Modal from './Modal'
 import { BarcodeScanner } from './BarcodeScanner'
@@ -14,6 +14,7 @@ interface RepairEditFormProps {
 
 const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormProps) => {
   const [updateRepair, { isLoading }] = useUpdateRepairMutation()
+  const [uploadPhotos] = useUploadRepairPhotosMutation()
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
   
   const [formData, setFormData] = useState<Partial<Repair>>({
@@ -69,10 +70,25 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
     if (!repair.id) return
     
     try {
+      // Update repair without photos first
+      const { photos, ...repairData } = formData
       await updateRepair({ 
         id: repair.id, 
-        repair: formData 
+        repair: repairData 
       }).unwrap()
+      
+      // Handle photos separately - upload new ones
+      if (photos && photos.length > 0) {
+        const newPhotos = photos.filter(photo => !photo.id || photo.url.startsWith('data:'))
+        if (newPhotos.length > 0) {
+          try {
+            await uploadPhotos({ repairId: repair.id, photos: newPhotos }).unwrap()
+          } catch (photoError) {
+            console.error('Failed to upload new photos:', photoError)
+          }
+        }
+      }
+      
       onSuccess()
     } catch (error) {
       console.error('Failed to update repair:', error)

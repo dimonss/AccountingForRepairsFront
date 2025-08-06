@@ -193,6 +193,21 @@ export const repairsApi = createApi({
     getRepairHistory: builder.query<ApiResponse<Record<string, unknown>[]>, number>({
       query: (id) => `/${id}/history`,
     }),
+    uploadRepairPhotos: builder.mutation<ApiResponse<RepairPhoto[]>, { repairId: number; photos: RepairPhoto[] }>({
+      query: ({ repairId, photos }) => ({
+        url: `/${repairId}/photos`,
+        method: 'POST',
+        body: { photos },
+      }),
+      invalidatesTags: (_result, _error, { repairId }) => [{ type: 'Repair', id: repairId }, { type: 'Repair', id: 'LIST' }],
+    }),
+    deleteRepairPhoto: builder.mutation<ApiResponse<{ message: string }>, { repairId: number; photoId: number }>({
+      query: ({ repairId, photoId }) => ({
+        url: `/${repairId}/photos/${photoId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { repairId }) => [{ type: 'Repair', id: repairId }, { type: 'Repair', id: 'LIST' }],
+    }),
   }),
 });
 
@@ -204,4 +219,6 @@ export const {
   useDeleteRepairMutation,
   useUpdateRepairStatusMutation,
   useGetRepairHistoryQuery,
+  useUploadRepairPhotosMutation,
+  useDeleteRepairPhotoMutation,
 } = repairsApi; 
