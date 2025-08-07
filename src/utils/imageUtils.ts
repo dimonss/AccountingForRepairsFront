@@ -12,10 +12,10 @@ export const generateUUID = (): string => {
   });
 };
 
-// Compress image to target size (2MB by default)
+// Compress image to target size (1MB by default)
 export const compressImage = (
   file: File | string, 
-  maxSizeBytes: number = 2 * 1024 * 1024, // 2MB
+  maxSizeBytes: number = 1 * 1024 * 1024, // 1MB
   quality: number = 0.8
 ): Promise<string> => {
   return new Promise((resolve, reject) => {

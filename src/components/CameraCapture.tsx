@@ -189,8 +189,8 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
       
       console.log(`📸 Original photo: ${formatFileSize(originalSize)}`);
 
-      // Сжимаем если больше 2MPX
-      const compressedDataURL = originalSize > 2 * 1024 * 1024 
+      // Сжимаем если больше 1MB
+      const compressedDataURL = originalSize > 1 * 1024 * 1024 
         ? await compressImage(originalDataURL)
         : originalDataURL;
 

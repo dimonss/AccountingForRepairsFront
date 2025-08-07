@@ -52,8 +52,8 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
           const originalSize = getBase64Size(originalDataURL);
           console.log(`📁 Original file "${file.name}": ${formatFileSize(originalSize)}`);
 
-          // Сжимаем если больше 2MB
-          const compressedDataURL = originalSize > 2 * 1024 * 1024 
+          // Сжимаем если больше 1MB
+          const compressedDataURL = originalSize > 1 * 1024 * 1024 
             ? await compressImage(file)
             : originalDataURL;
 
