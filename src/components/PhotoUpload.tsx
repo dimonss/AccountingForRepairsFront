@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import type { RepairPhoto } from '../store/api/repairsApi';
+import { useDeleteRepairPhotoMutation } from '../store/api/repairsApi';
 import { CameraCapture } from './CameraCapture';
+import { ConfirmModal } from './ConfirmModal';
 import { generateUUID, compressImage, formatFileSize, getBase64Size } from '../utils/imageUtils';
 import './PhotoUpload.css';
 
@@ -9,17 +11,23 @@ interface PhotoUploadProps {
   onPhotosChange: (photos: RepairPhoto[]) => void;
   maxPhotos?: number;
   disabled?: boolean;
+  repairId?: number; // ID ремонта для удаления фотографий с сервера
 }
 
 export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   photos = [],
   onPhotosChange,
-  maxPhotos = 3,
-  disabled = false
+  maxPhotos = 5,
+  disabled = false,
+  repairId
 }) => {
+  const [deletePhoto] = useDeleteRepairPhotoMutation();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<{ index: number; photo: RepairPhoto } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (files: FileList) => {
@@ -109,9 +117,42 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
     }
   };
 
-  const removePhoto = (index: number) => {
-    const updatedPhotos = photos.filter((_, i) => i !== index);
-    onPhotosChange(updatedPhotos);
+  const handleDeletePhoto = (index: number) => {
+    const photo = photos[index];
+    setPhotoToDelete({ index, photo });
+    setShowConfirmModal(true);
+  };
+
+  const confirmDeletePhoto = async () => {
+    if (!photoToDelete) return;
+    
+    const { index, photo } = photoToDelete;
+    
+    try {
+      setIsDeleting(true);
+      
+      // Если у фото есть ID и есть repairId, удаляем с сервера
+      if (photo.id && repairId) {
+        await deletePhoto({ repairId, photoId: photo.id }).unwrap();
+      }
+      
+      // Удаляем из локального состояния
+      const updatedPhotos = photos.filter((_, i) => i !== index);
+      onPhotosChange(updatedPhotos);
+      
+      setShowConfirmModal(false);
+      setPhotoToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete photo:', error);
+      // Показываем ошибку пользователю (можно добавить toast)
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const cancelDeletePhoto = () => {
+    setShowConfirmModal(false);
+    setPhotoToDelete(null);
   };
 
   const updatePhotoCaption = (index: number, caption: string) => {
@@ -209,7 +250,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
                 <img src={photo.url} alt={photo.filename} />
                 <button
                   type="button"
-                  onClick={() => removePhoto(index)}
+                  onClick={() => handleDeletePhoto(index)}
                   className="photo-remove-btn"
                   disabled={disabled}
                 >
@@ -225,7 +266,6 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
                   disabled={disabled}
                   className="photo-caption"
                 />
-                <small className="photo-filename">{photo.filename}</small>
               </div>
             </div>
           ))}
@@ -237,6 +277,18 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
         isOpen={showCamera}
         onClose={handleCloseCamera}
         onCapture={handleCameraCapture}
+      />
+
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="Удалить фотографию"
+        message="Вы уверены, что хотите удалить эту фотографию? Это действие нельзя отменить."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        onConfirm={confirmDeletePhoto}
+        onCancel={cancelDeletePhoto}
+        isLoading={isDeleting}
       />
     </div>
   );

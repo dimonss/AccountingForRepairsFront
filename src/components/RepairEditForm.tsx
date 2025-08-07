@@ -312,8 +312,9 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
               <PhotoUpload
                 photos={formData.photos || []}
                 onPhotosChange={handlePhotosChange}
-                maxPhotos={3}
+                maxPhotos={5}
                 disabled={isLoading}
+                repairId={repair.id}
               />
             </div>
           </form>

@@ -94,9 +94,6 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({
                 {currentPhoto.caption}
               </div>
             )}
-            <div className="photo-filename">
-              {currentPhoto.filename}
-            </div>
             {currentPhoto.uploaded_at && (
               <div className="photo-date">
                 Загружено: {new Date(currentPhoto.uploaded_at).toLocaleDateString('ru-RU')}

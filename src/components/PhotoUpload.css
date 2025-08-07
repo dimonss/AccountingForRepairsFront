@@ -170,7 +170,7 @@
   width: 24px;
   height: 24px;
   border: none;
-  border-radius: 50%;
+  border-radius: 34%;
   background: rgba(0, 0, 0, 0.7);
   color: white;
   font-size: 0.75rem;
@@ -219,15 +219,6 @@
 .photo-caption:disabled {
   background: #f7fafc;
   color: #a0aec0;
-}
-
-.photo-filename {
-  display: block;
-  color: #718096;
-  font-size: 0.75rem;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
 }
 
 /* Мобильная адаптация */
