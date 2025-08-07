@@ -14,7 +14,7 @@ interface PhotoUploadProps {
 export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   photos = [],
   onPhotosChange,
-  maxPhotos = 10,
+  maxPhotos = 3,
   disabled = false
 }) => {
   const [isDragging, setIsDragging] = useState(false);

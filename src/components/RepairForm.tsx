@@ -243,7 +243,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
           <PhotoUpload
             photos={formData.photos || []}
             onPhotosChange={handlePhotosChange}
-            maxPhotos={8}
+            maxPhotos={3}
             disabled={isLoading}
           />
         </div>
