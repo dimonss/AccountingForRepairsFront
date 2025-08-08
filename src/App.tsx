@@ -7,14 +7,21 @@ import ProtectedRoute from './components/ProtectedRoute'
 import RepairsList from './components/RepairsList'
 import RepairModal from './components/RepairModal'
 import Modal from './components/Modal'
+import DebugModal from './components/DebugModal'
 import './App.css'
 
 function App() {
   const [showRepairModal, setShowRepairModal] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [showDebugModal, setShowDebugModal] = useState(false)
   const { user, refreshToken } = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch()
   const [logoutMutation] = useLogoutMutation()
+  
+  // Debug modal trigger logic
+  const handleDebugClick = () => {
+        setShowDebugModal(true)
+  }
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true)
@@ -45,7 +52,10 @@ function App() {
         <header className="app-header">
           <div className="header-left">
             <h1>🔧 Система Ремонтов</h1>
-            <span className="user-welcome">
+            <span 
+              className="user-welcome"
+              onClick={handleDebugClick}
+            >
               Добро пожаловать, <strong>{user?.full_name}</strong> ({user?.role})
             </span>
           </div>
@@ -77,6 +87,12 @@ function App() {
         isOpen={showRepairModal}
         onSuccess={() => setShowRepairModal(false)}
         onCancel={() => setShowRepairModal(false)}
+      />
+      
+      {/* Debug Modal */}
+      <DebugModal
+        isOpen={showDebugModal}
+        onClose={() => setShowDebugModal(false)}
       />
       
       <Modal
