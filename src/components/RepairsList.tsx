@@ -239,9 +239,9 @@ const RepairsList = () => {
         </div>
         
         <div className="repairs-stats">
-          <span>Всего: {pagination?.total || 0}</span>
-          {(statusFilter !== 'all' || searchFilter) && pagination?.total !== undefined && (
-            <span>Найдено: {pagination.total}</span>
+          <span>Всего: {pagination?.totalWithoutFilters || pagination?.total || 0}</span>
+          {(statusFilter !== 'all' || searchFilter) && pagination?.total !== pagination?.totalWithoutFilters && (
+            <span>Найдено: {pagination?.total || 0}</span>
           )}
           {pagination && pagination.totalPages > 1 && (
             <span>Страница {pagination.page} из {pagination.totalPages}</span>

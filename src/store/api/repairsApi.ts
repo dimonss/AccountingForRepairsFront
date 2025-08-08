@@ -57,6 +57,7 @@ export interface PaginationInfo {
   limit: number;
   total: number;
   totalPages: number;
+  totalWithoutFilters?: number;
 }
 
 export interface RepairsResponse {
