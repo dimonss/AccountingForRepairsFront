@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useGetRepairsQuery, useDeleteRepairMutation, useUpdateRepairStatusMutation } from '../store/api/repairsApi'
 import type { Repair, RepairPhoto } from '../store/api/repairsApi'
 import Modal from './Modal'
-import RepairEditForm from './RepairEditForm'
+import RepairModal from './RepairModal'
 import { BarcodeScanner } from './BarcodeScanner'
 import { PhotoGallery } from './PhotoGallery'
 
@@ -15,7 +15,7 @@ const RepairsList = () => {
   const [repairToDelete, setRepairToDelete] = useState<Repair | null>(null)
   
   // Edit form state
-  const [showEditForm, setShowEditForm] = useState(false)
+  const [showRepairModal, setShowRepairModal] = useState(false)
   const [repairToEdit, setRepairToEdit] = useState<Repair | null>(null)
   
   // Filter states
@@ -89,16 +89,16 @@ const RepairsList = () => {
 
   const handleEditClick = (repair: Repair) => {
     setRepairToEdit(repair)
-    setShowEditForm(true)
+    setShowRepairModal(true)
   }
 
   const handleEditSuccess = () => {
-    setShowEditForm(false)
+    setShowRepairModal(false)
     setRepairToEdit(null)
   }
 
   const handleEditCancel = () => {
-    setShowEditForm(false)
+    setShowRepairModal(false)
     setRepairToEdit(null)
   }
 
@@ -352,9 +352,9 @@ const RepairsList = () => {
 
       {/* Edit Form */}
       {repairToEdit && (
-        <RepairEditForm 
+        <RepairModal 
           repair={repairToEdit}
-          isOpen={showEditForm}
+          isOpen={showRepairModal}
           onSuccess={handleEditSuccess} 
           onCancel={handleEditCancel} 
         />

@@ -265,6 +265,9 @@
     font-size: 1rem;
     padding: 0.75rem;
   }
+  .photo-dropzone  {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {

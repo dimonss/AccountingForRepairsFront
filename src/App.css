@@ -180,9 +180,6 @@ body {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
   width: 100%;
   box-sizing: border-box;
 }
@@ -1034,33 +1031,6 @@ body {
   flex: 1;
 }
 
-.scanner-btn {
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-  color: white;
-  border: none;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
-  min-width: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.scanner-btn:hover {
-  background: linear-gradient(135deg, #2980b9 0%, #1f4e79 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-}
-
-.scanner-btn:active {
-  transform: translateY(0);
-}
-
 /* Barcode Scanner Modal Content */
 .barcode-scanner-content {
   padding: 20px;
@@ -1239,11 +1209,6 @@ body {
   .input-with-scanner {
     flex-direction: column;
     gap: 10px;
-  }
-
-  .scanner-btn {
-    align-self: stretch;
-    padding: 14px;
   }
 }
 

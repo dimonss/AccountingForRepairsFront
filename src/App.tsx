@@ -5,12 +5,12 @@ import { logout } from './store/authSlice'
 import { useLogoutMutation } from './store/api/authApi'
 import ProtectedRoute from './components/ProtectedRoute'
 import RepairsList from './components/RepairsList'
-import RepairForm from './components/RepairForm'
+import RepairModal from './components/RepairModal'
 import Modal from './components/Modal'
 import './App.css'
 
 function App() {
-  const [showForm, setShowForm] = useState(false)
+  const [showRepairModal, setShowRepairModal] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const { user, refreshToken } = useSelector((state: RootState) => state.auth)
   const dispatch = useDispatch()
@@ -52,9 +52,9 @@ function App() {
           <div className="header-actions">
             <button 
               className="add-repair-btn"
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => setShowRepairModal(true)}
             >
-              {showForm ? 'Отмена' : 'Добавить Ремонт'}
+              Добавить Ремонт
             </button>
             <button 
               className="logout-btn"
@@ -66,16 +66,19 @@ function App() {
           </div>
         </header>
         <main className="app-main">
-          {showForm && (
-            <div className="form-section">
-              <RepairForm onSuccess={() => setShowForm(false)} />
-            </div>
-          )}
           <div className="repairs-section">
             <RepairsList />
           </div>
         </main>
       </div>
+      
+      {/* Repair Modal for creating new repairs */}
+      <RepairModal
+        isOpen={showRepairModal}
+        onSuccess={() => setShowRepairModal(false)}
+        onCancel={() => setShowRepairModal(false)}
+      />
+      
       <Modal
         isOpen={showLogoutModal}
         onClose={handleCancelLogout}
