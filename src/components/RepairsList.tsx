@@ -210,7 +210,7 @@ const RepairsList = () => {
 
       {error && (
         <div className="error-message">
-          <p>Ошибка загрузки ремонтов: {(error as any)?.data?.error || 'Неизвестная ошибка'}</p>
+          <p>Ошибка загрузки ремонтов: {(error as { data?: { error?: string } })?.data?.error || 'Неизвестная ошибка'}</p>
         </div>
       )}
 

@@ -29,7 +29,7 @@ export class ReactQrBarcodeScannerService implements IScannerService {
         };
 
         await navigator.mediaDevices.getUserMedia(constraints);
-      } catch (err) {
+      } catch (_) { // eslint-disable-line @typescript-eslint/no-unused-vars
         // Если не получилось с оптимальными настройками, пробуем базовые
         try {
           await navigator.mediaDevices.getUserMedia({ video: true });

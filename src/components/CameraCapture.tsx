@@ -22,7 +22,6 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
-  const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const startCamera = useCallback(async () => {
@@ -91,29 +90,42 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   }, [onClose]);
 
   useEffect(() => {
-    if (isOpen) {
-      checkCameras();
-      startCamera();
-    } else {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
+    if (!isOpen) return;
+
+    const video = videoRef.current;
+
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: facingMode,
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
+          }
+        });
+
+        if (video) {
+          video.srcObject = stream;
+          streamRef.current = stream;
+        }
+      } catch (err) {
+        console.error('Error starting camera:', err);
+        onClose();
       }
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-    }
+    };
+
+    startCamera();
 
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
+      if (video) {
+        video.srcObject = null;
       }
     };
-  }, [isOpen, startCamera]);
+  }, [isOpen, facingMode, onClose]);
 
   // Cleanup портала при размонтировании
   useEffect(() => {
@@ -142,16 +154,6 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     };
   }, [isOpen, handleClose]);
 
-  const checkCameras = async () => {
-    try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
-      setHasMultipleCameras(videoDevices.length > 1);
-    } catch (err) {
-      console.warn('Could not enumerate devices:', err);
-    }
-  };
-
   // const stopCamera = () => {
   //   if (streamRef.current) {
   //     streamRef.current.getTracks().forEach(track => track.stop());
@@ -173,7 +175,8 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
       const context = canvas.getContext('2d');
 
       if (!context) {
-        throw new Error('Canvas context not available');
+        setError('Canvas context not available');
+        return;
       }
 
       // Устанавливаем размер canvas равный размеру видео
@@ -288,9 +291,9 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
 
               <div className="camera-controls">
                   <button
-                    className={`camera-capture-btn camera-second-btn ${hasMultipleCameras ? "" : "disabled"}`}
+                    className={`camera-capture-btn camera-second-btn`}
                     onClick={switchCamera}
-                    disabled={isLoading || hasMultipleCameras}
+                    disabled={isLoading}
                   >
                     🔄
                   </button>
