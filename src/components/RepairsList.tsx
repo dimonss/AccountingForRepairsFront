@@ -211,7 +211,7 @@ const RepairsList = () => {
             <button
               type="button"
               onClick={handleOpenScanner}
-              className="scanner-btn"
+              className="barcode-scan-btn"
               title="Сканировать штрихкод"
             >
               📷
