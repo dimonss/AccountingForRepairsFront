@@ -13,6 +13,16 @@ const RepairsList = () => {
   const [debouncedSearchFilter, setDebouncedSearchFilter] = useState<string>('')
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
   
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = localStorage.getItem('repairsCurrentPage')
+    return saved ? parseInt(saved, 10) : 1
+  })
+  const [pageSize, setPageSize] = useState(() => {
+    const saved = localStorage.getItem('repairsPageSize')
+    return saved ? parseInt(saved, 10) : 25
+  })
+  
   // Debounce search filter
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -22,15 +32,30 @@ const RepairsList = () => {
     return () => clearTimeout(timer)
   }, [searchFilter])
   
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [debouncedSearchFilter, statusFilter])
+  
+  // Save page size to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('repairsPageSize', pageSize.toString())
+  }, [pageSize])
+  
+  // Save current page to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('repairsCurrentPage', currentPage.toString())
+  }, [currentPage])
+  
   // Search params for API
   const searchParams: SearchParams = useMemo(() => ({
     search: debouncedSearchFilter.trim() || undefined,
     status: statusFilter !== 'all' ? statusFilter : undefined,
-    page: 1,
-    limit: 50,
+    page: currentPage,
+    limit: pageSize,
     sortBy: 'created_at',
     sortOrder: 'DESC'
-  }), [debouncedSearchFilter, statusFilter])
+  }), [debouncedSearchFilter, statusFilter, currentPage, pageSize])
   
   const { data: repairsResponse, error, isLoading } = useGetRepairsQuery(searchParams)
   const [deleteRepair] = useDeleteRepairMutation()
@@ -100,6 +125,28 @@ const RepairsList = () => {
   const handleEditCancel = () => {
     setShowRepairModal(false)
     setRepairToEdit(null)
+  }
+
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  const handleNextPage = () => {
+    if (pagination && currentPage < pagination.totalPages) {
+      setCurrentPage(currentPage + 1)
+    }
   }
 
   const handleConfirmDelete = async () => {
@@ -192,11 +239,11 @@ const RepairsList = () => {
         </div>
         
         <div className="repairs-stats">
-          <span>Всего: {pagination?.total || repairs.length}</span>
-          {(statusFilter !== 'all' || searchFilter) && (
-            <span>Найдено: {repairs.length}</span>
+          <span>Всего: {pagination?.total || 0}</span>
+          {(statusFilter !== 'all' || searchFilter) && pagination?.total !== undefined && (
+            <span>Найдено: {pagination.total}</span>
           )}
-          {pagination && (
+          {pagination && pagination.totalPages > 1 && (
             <span>Страница {pagination.page} из {pagination.totalPages}</span>
           )}
         </div>
@@ -310,6 +357,74 @@ const RepairsList = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* Pagination Component */}
+      {!isLoading && !error && repairs.length > 0 && pagination && pagination.totalPages > 1 && (
+        <div className="pagination-container">
+          <div className="pagination-info">
+            <span>
+              Показано {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} из {pagination.total} записей
+            </span>
+            <div className="page-size-selector">
+              <label htmlFor="pageSize">Записей на странице:</label>
+              <select
+                id="pageSize"
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="page-size-select"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="pagination-controls">
+            <button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className="pagination-btn prev-btn"
+            >
+              ← Предыдущая
+            </button>
+            
+            <div className="page-numbers">
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                let pageNum;
+                if (pagination.totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= pagination.totalPages - 2) {
+                  pageNum = pagination.totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`pagination-btn page-btn ${currentPage === pageNum ? 'active' : ''}`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+            
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === pagination.totalPages}
+              className="pagination-btn next-btn"
+            >
+              Следующая →
+            </button>
+          </div>
+        </div>
       )}
 
       <Modal 
