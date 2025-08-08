@@ -39,13 +39,14 @@ const RepairsList = () => {
       // Status filter
       const statusMatch = statusFilter === 'all' || repair.repair_status === statusFilter
       
-      // Search filter (client name, phone, email, serial number)
+      // Search filter (client name, phone, email, serial number, repair number)
       const searchTerm = searchFilter.toLowerCase().trim()
       const searchMatch = !searchTerm || 
         repair.client_name.toLowerCase().includes(searchTerm) ||
         repair.client_phone.toLowerCase().includes(searchTerm) ||
         (repair.client_email && repair.client_email.toLowerCase().includes(searchTerm)) ||
-        (repair.serial_number && repair.serial_number.toLowerCase().includes(searchTerm))
+        (repair.serial_number && repair.serial_number.toLowerCase().includes(searchTerm)) ||
+        (repair.repair_number && repair.repair_number.toLowerCase().includes(searchTerm))
       
       return statusMatch && searchMatch
     })
@@ -188,7 +189,7 @@ const RepairsList = () => {
                 type="text"
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
-                placeholder="Имя, телефон, email, серийный номер..."
+                placeholder="Имя, телефон, email, серийный номер, номер ремонта..."
                 className="filter-input"
               />
               <button
@@ -246,6 +247,7 @@ const RepairsList = () => {
                     <p><strong>Телефон:</strong> {repair.client_phone}</p>
                     {repair.client_email && <p><strong>Email:</strong> {repair.client_email}</p>}
                     {repair.serial_number && <p><strong>Серийный номер:</strong> {repair.serial_number}</p>}
+                    {repair.repair_number && <p><strong>Номер ремонта:</strong> {repair.repair_number}</p>}
                     <p><strong>Проблема:</strong> {repair.issue_description}</p>
                     {repair.estimated_cost && <p><strong>Предварительная стоимость:</strong> {repair.estimated_cost}₽</p>}
                     {repair.actual_cost && <p><strong>Фактическая стоимость:</strong> {repair.actual_cost}₽</p>}

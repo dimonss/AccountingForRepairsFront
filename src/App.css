@@ -209,6 +209,7 @@ body {
 
 .form-group.full-width {
   grid-column: 1 / -1;
+  margin-bottom: 30px;
 }
 
 .form-group label {

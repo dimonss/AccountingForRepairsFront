@@ -12,12 +12,14 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
   const [createRepair, { isLoading }] = useCreateRepairMutation()
   const [uploadPhotos] = useUploadRepairPhotosMutation()
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
+  const [scanningField, setScanningField] = useState<'serial_number' | 'repair_number' | null>(null)
   
   const [formData, setFormData] = useState<Partial<Repair>>({
     device_type: '',
     brand: '',
     model: '',
     serial_number: '',
+    repair_number: '',
     client_name: '',
     client_phone: '',
     client_email: '',
@@ -36,19 +38,24 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
   }
 
   const handleBarcodeScanned = (scannedCode: string) => {
-    setFormData(prev => ({
-      ...prev,
-      serial_number: scannedCode
-    }))
+    if (scanningField) {
+      setFormData(prev => ({
+        ...prev,
+        [scanningField]: scannedCode
+      }))
+    }
     setShowBarcodeScanner(false)
+    setScanningField(null)
   }
 
-  const handleOpenScanner = () => {
+  const handleOpenScanner = (field: 'serial_number' | 'repair_number') => {
+    setScanningField(field)
     setShowBarcodeScanner(true)
   }
 
   const handleCloseScanner = () => {
     setShowBarcodeScanner(false)
+    setScanningField(null)
   }
 
   const handlePhotosChange = (photos: RepairPhoto[]) => {
@@ -83,6 +90,7 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
         brand: '',
         model: '',
         serial_number: '',
+        repair_number: '',
         client_name: '',
         client_phone: '',
         client_email: '',
@@ -159,7 +167,31 @@ const RepairForm = ({ onSuccess }: RepairFormProps) => {
               <button
                 type="button"
                 className="scanner-btn"
-                onClick={handleOpenScanner}
+                onClick={() => handleOpenScanner('serial_number')}
+                title="Сканировать штрихкод"
+              >
+                📷
+              </button>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="repair_number">Номер Ремонта</label>
+            <div className="input-with-scanner">
+              <input
+                type="text"
+                id="repair_number"
+                name="repair_number"
+                value={formData.repair_number}
+                onChange={handleChange}
+                placeholder="Введите или отсканируйте номер ремонта"
+                maxLength={6}
+                pattern="[0-9]{6}"
+              />
+              <button
+                type="button"
+                className="scanner-btn"
+                onClick={() => handleOpenScanner('repair_number')}
                 title="Сканировать штрихкод"
               >
                 📷

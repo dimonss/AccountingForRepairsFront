@@ -17,6 +17,7 @@ export interface Repair {
   brand: string;
   model: string;
   serial_number?: string;
+  repair_number?: string;
   client_name: string;
   client_phone: string;
   client_email?: string;

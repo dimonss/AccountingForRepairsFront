@@ -16,12 +16,14 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
   const [updateRepair, { isLoading }] = useUpdateRepairMutation()
   const [uploadPhotos] = useUploadRepairPhotosMutation()
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
+  const [scanningField, setScanningField] = useState<'serial_number' | 'repair_number' | null>(null)
   
   const [formData, setFormData] = useState<Partial<Repair>>({
     device_type: '',
     brand: '',
     model: '',
     serial_number: '',
+    repair_number: '',
     client_name: '',
     client_phone: '',
     client_email: '',
@@ -41,6 +43,7 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
         brand: repair.brand || '',
         model: repair.model || '',
         serial_number: repair.serial_number || '',
+        repair_number: repair.repair_number || '',
         client_name: repair.client_name || '',
         client_phone: repair.client_phone || '',
         client_email: repair.client_email || '',
@@ -96,11 +99,14 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
   }
 
   const handleBarcodeScanned = (scannedCode: string) => {
-    setFormData(prev => ({
-      ...prev,
-      serial_number: scannedCode
-    }))
+    if (scanningField) {
+      setFormData(prev => ({
+        ...prev,
+        [scanningField]: scannedCode
+      }))
+    }
     setShowBarcodeScanner(false)
+    setScanningField(null)
   }
 
   const handlePhotosChange = (photos: RepairPhoto[]) => {
@@ -110,12 +116,14 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
     }))
   }
 
-  const handleOpenScanner = () => {
+  const handleOpenScanner = (field: 'serial_number' | 'repair_number') => {
+    setScanningField(field)
     setShowBarcodeScanner(true)
   }
 
   const handleCloseScanner = () => {
     setShowBarcodeScanner(false)
+    setScanningField(null)
   }
 
   return (
@@ -189,7 +197,31 @@ const RepairEditForm = ({ repair, isOpen, onSuccess, onCancel }: RepairEditFormP
                   <button
                     type="button"
                     className="scanner-btn"
-                    onClick={handleOpenScanner}
+                    onClick={() => handleOpenScanner('serial_number')}
+                    title="Сканировать штрихкод"
+                  >
+                    📷
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="repair_number">Номер Ремонта</label>
+                <div className="input-with-scanner">
+                  <input
+                    type="text"
+                    id="repair_number"
+                    name="repair_number"
+                    value={formData.repair_number}
+                    onChange={handleChange}
+                    placeholder="Введите или отсканируйте номер ремонта"
+                    maxLength={6}
+                    pattern="[0-9]{6}"
+                  />
+                  <button
+                    type="button"
+                    className="scanner-btn"
+                    onClick={() => handleOpenScanner('repair_number')}
                     title="Сканировать штрихкод"
                   >
                     📷
