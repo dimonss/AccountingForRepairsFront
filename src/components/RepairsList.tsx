@@ -1,13 +1,38 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useGetRepairsQuery, useDeleteRepairMutation, useUpdateRepairStatusMutation } from '../store/api/repairsApi'
-import type { Repair, RepairPhoto } from '../store/api/repairsApi'
+import type { Repair, RepairPhoto, SearchParams } from '../store/api/repairsApi'
 import Modal from './Modal'
 import RepairModal from './RepairModal'
 import { BarcodeScanner } from './BarcodeScanner'
 import { PhotoGallery } from './PhotoGallery'
 
 const RepairsList = () => {
-  const { data: repairsResponse, error, isLoading } = useGetRepairsQuery()
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [searchFilter, setSearchFilter] = useState<string>('')
+  const [debouncedSearchFilter, setDebouncedSearchFilter] = useState<string>('')
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
+  
+  // Debounce search filter
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchFilter(searchFilter)
+    }, 300)
+    
+    return () => clearTimeout(timer)
+  }, [searchFilter])
+  
+  // Search params for API
+  const searchParams: SearchParams = useMemo(() => ({
+    search: debouncedSearchFilter.trim() || undefined,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    page: 1,
+    limit: 50,
+    sortBy: 'created_at',
+    sortOrder: 'DESC'
+  }), [debouncedSearchFilter, statusFilter])
+  
+  const { data: repairsResponse, error, isLoading } = useGetRepairsQuery(searchParams)
   const [deleteRepair] = useDeleteRepairMutation()
   const [updateRepairStatus] = useUpdateRepairStatusMutation()
   
@@ -18,39 +43,14 @@ const RepairsList = () => {
   const [showRepairModal, setShowRepairModal] = useState(false)
   const [repairToEdit, setRepairToEdit] = useState<Repair | null>(null)
   
-  // Filter states
-  const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [searchFilter, setSearchFilter] = useState<string>('')
-  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
-  
   // Photo gallery state
   const [showPhotoGallery, setShowPhotoGallery] = useState(false)
   const [galleryPhotos, setGalleryPhotos] = useState<RepairPhoto[]>([])
   const [galleryInitialIndex, setGalleryInitialIndex] = useState(0)
 
-  // Memoize repairs array to prevent recreating on each render
-  const repairs = useMemo(() => {
-    return repairsResponse?.data || []
-  }, [repairsResponse?.data])
-
-  // Filtered repairs using useMemo for performance
-  const filteredRepairs = useMemo(() => {
-    return repairs.filter((repair: Repair) => {
-      // Status filter
-      const statusMatch = statusFilter === 'all' || repair.repair_status === statusFilter
-      
-      // Search filter (client name, phone, email, serial number, repair number)
-      const searchTerm = searchFilter.toLowerCase().trim()
-      const searchMatch = !searchTerm || 
-        repair.client_name.toLowerCase().includes(searchTerm) ||
-        repair.client_phone.toLowerCase().includes(searchTerm) ||
-        (repair.client_email && repair.client_email.toLowerCase().includes(searchTerm)) ||
-        (repair.serial_number && repair.serial_number.toLowerCase().includes(searchTerm)) ||
-        (repair.repair_number && repair.repair_number.toLowerCase().includes(searchTerm))
-      
-      return statusMatch && searchMatch
-    })
-  }, [repairs, statusFilter, searchFilter])
+  // Get repairs array from response
+  const repairs = repairsResponse?.data || []
+  const pagination = repairsResponse?.pagination
 
   const handleClearFilters = () => {
     setStatusFilter('all')
@@ -152,85 +152,81 @@ const RepairsList = () => {
   return (
     <div className="repairs-list">
       <div className="repairs-header">
-        <h2>Список Ремонтов</h2>
-        <div className="repairs-stats">
-          <span>Всего: {repairs.length}</span>
-          {(statusFilter !== 'all' || searchFilter) && (
-            <span>Найдено: {filteredRepairs.length}</span>
-          )}
-        </div>
-      </div>
-
-      {/* Filters Panel */}
-      <div className="filters-panel">
-        <div className="filters-row">
-          <div className="filter-group">
-            <label htmlFor="status-filter">Статус:</label>
-            <select
-              id="status-filter"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="filter-select"
+        <div className="filters-section">
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Имя, телефон, email, серийный номер, номер ремонта..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              className="search-input"
+            />
+            <button
+              type="button"
+              onClick={handleOpenScanner}
+              className="scanner-btn"
+              title="Сканировать штрихкод"
             >
-              <option value="all">Все статусы</option>
-              <option value="pending">Ожидает</option>
-              <option value="in_progress">В работе</option>
-              <option value="waiting_parts">Ожидание запчастей</option>
-              <option value="completed">Завершён</option>
-              <option value="cancelled">Отменён</option>
-            </select>
+              📷
+            </button>
           </div>
-
-          <div className="filter-group">
-            <label htmlFor="search-filter">Поиск:</label>
-            <div className="search-input-container">
-              <input
-                id="search-filter"
-                type="text"
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-                placeholder="Имя, телефон, email, серийный номер, номер ремонта..."
-                className="filter-input"
-              />
-              <button
-                type="button"
-                onClick={handleOpenScanner}
-                className="barcode-scan-btn"
-                title="Сканировать штрих-код"
-              >
-                📷
-              </button>
-            </div>
-          </div>
-
+          
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="status-filter"
+          >
+            <option value="all">Все статусы</option>
+            <option value="pending">Ожидает</option>
+            <option value="in_progress">В работе</option>
+            <option value="waiting_parts">Ожидание запчастей</option>
+            <option value="completed">Завершен</option>
+            <option value="cancelled">Отменен</option>
+          </select>
+          
           {(statusFilter !== 'all' || searchFilter) && (
-            <button 
-              onClick={handleClearFilters}
-              className="clear-filters-btn"
-              title="Очистить фильтры"
-            >
-              ✕ Очистить
+            <button onClick={handleClearFilters} className="clear-filters-btn">
+              Очистить фильтры
             </button>
           )}
         </div>
+        
+        <div className="repairs-stats">
+          <span>Всего: {pagination?.total || repairs.length}</span>
+          {(statusFilter !== 'all' || searchFilter) && (
+            <span>Найдено: {repairs.length}</span>
+          )}
+          {pagination && (
+            <span>Страница {pagination.page} из {pagination.totalPages}</span>
+          )}
+        </div>
       </div>
 
-      {isLoading && <div className="loading">Загрузка ремонтов...</div>}
-      {error && <div className="error">Ошибка загрузки ремонтов</div>}
-      
+      {isLoading && (
+        <div className="loading-indicator">
+          <p>Загрузка ремонтов...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-message">
+          <p>Ошибка загрузки ремонтов: {(error as any)?.data?.error || 'Неизвестная ошибка'}</p>
+        </div>
+      )}
+
       {!isLoading && !error && (
         <>
-          {filteredRepairs.length === 0 ? (
+          {repairs.length === 0 ? (
             <div className="no-repairs">
-              {repairs.length === 0 ? (
-                <p>Ремонты не найдены. Добавьте первый ремонт!</p>
-              ) : (
+              {searchFilter || statusFilter !== 'all' ? (
                 <p>По заданным фильтрам ничего не найдено. Попробуйте изменить критерии поиска.</p>
+              ) : (
+                <p>Ремонты не найдены. Добавьте первый ремонт!</p>
               )}
             </div>
           ) : (
             <div className="repairs-grid">
-              {filteredRepairs.map((repair: Repair) => (
+              {repairs.map((repair: Repair) => (
                 <div key={repair.id} className="repair-card">
                   <div className="repair-header">
                     <h3>{repair.device_type} - {repair.brand} {repair.model}</h3>

@@ -43,6 +43,28 @@ export interface RepairHistoryEntry {
   changed_by_name?: string;
 }
 
+export interface SearchParams {
+  search?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+}
+
+export interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface RepairsResponse {
+  success: boolean;
+  data: Repair[];
+  pagination: PaginationInfo;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -146,8 +168,20 @@ export const repairsApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ['Repair'],
   endpoints: (builder) => ({
-    getRepairs: builder.query<ApiResponse<Repair[]>, void>({
-      query: () => '',
+    getRepairs: builder.query<RepairsResponse, SearchParams>({
+      query: (params) => {
+        const searchParams = new URLSearchParams();
+        
+        if (params.search) searchParams.append('search', params.search);
+        if (params.status && params.status !== 'all') searchParams.append('status', params.status);
+        if (params.page) searchParams.append('page', params.page.toString());
+        if (params.limit) searchParams.append('limit', params.limit.toString());
+        if (params.sortBy) searchParams.append('sortBy', params.sortBy);
+        if (params.sortOrder) searchParams.append('sortOrder', params.sortOrder);
+        
+        const queryString = searchParams.toString();
+        return queryString ? `?${queryString}` : '';
+      },
       providesTags: (result) =>
         result?.data
           ? [
