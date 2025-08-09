@@ -34,17 +34,13 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     if (storedId) {
       return {
         video: {
-          deviceId: { exact: storedId },
-          width: { ideal: 1280, min: 640 },
-          height: { ideal: 720, min: 480 }
+          deviceId: { exact: storedId }
         }
       };
     }
     return {
       video: {
-        facingMode: facingMode,
-        width: { ideal: 1280, min: 640 },
-        height: { ideal: 720, min: 480 }
+        facingMode: facingMode
       }
     };
   };

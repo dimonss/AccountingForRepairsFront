@@ -25,15 +25,11 @@ export class ReactQrBarcodeScannerService implements IScannerService {
           ? {
               video: {
                 deviceId: { exact: defaultId },
-                width: { ideal: 1280, min: 640 },
-                height: { ideal: 720, min: 480 }
               }
             }
           : {
               video: {
-                facingMode: 'environment', // Предпочитаем заднюю камеру
-                width: { ideal: 1280, min: 640 },
-                height: { ideal: 720, min: 480 }
+                facingMode: 'environment',
               }
             };
 
@@ -192,11 +188,12 @@ export class ReactQrBarcodeScannerService implements IScannerService {
 
   renderScanner(width: string, height: string): React.ReactElement {
     const defaultId = getDefaultCameraDeviceId();
-    const props: any = {
+    return React.createElement(BarcodeScannerComponent, {
       width,
       height,
       delay: 100,
       facingMode: defaultId ? undefined : 'environment',
+      videoConstraints: defaultId ? ({ deviceId: { exact: defaultId } } as MediaTrackConstraints) : undefined,
       onUpdate: (err: unknown, result?: Result) => {
         if (result) {
           this.handleScanResult(result);
@@ -207,10 +204,6 @@ export class ReactQrBarcodeScannerService implements IScannerService {
       onError: (error: unknown) => {
         this.handleScanError(error);
       }
-    };
-    if (defaultId) {
-      props.constraints = { video: { deviceId: { exact: defaultId } } };
-    }
-    return React.createElement(BarcodeScannerComponent as unknown as any, props);
+    });
   }
 }
