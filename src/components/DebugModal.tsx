@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Modal from './Modal'
+import { getDefaultCameraDeviceId, setDefaultCameraDeviceId, clearDefaultCameraDeviceId } from '../utils/cameraPreferences'
 
 interface CameraInfo {
   deviceId: string
@@ -23,6 +24,7 @@ const DebugModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
   const [isLoadingCameras, setIsLoadingCameras] = useState(false)
   const [isCameraActive, setIsCameraActive] = useState(false)
+  const [defaultCameraId, setDefaultCameraId] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
@@ -30,6 +32,7 @@ const DebugModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
     if (isOpen) {
       loadDebugInfo()
       loadCameras()
+      setDefaultCameraId(getDefaultCameraDeviceId())
     } else {
       stopCamera()
     }
@@ -90,7 +93,10 @@ const DebugModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
           kind: device.kind
         }))
       setCameras(videoDevices)
-      if (videoDevices.length > 0) {
+      const storedDefault = getDefaultCameraDeviceId()
+      if (storedDefault && videoDevices.some(v => v.deviceId === storedDefault)) {
+        setSelectedCamera(storedDefault)
+      } else if (videoDevices.length > 0) {
         setSelectedCamera(videoDevices[0].deviceId)
       }
     } catch (error) {
@@ -106,7 +112,7 @@ const DebugModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
       streamRef.current = null
     }
     if (videoRef.current) {
-      videoRef.current.srcObject = null
+      ;(videoRef.current as HTMLVideoElement).srcObject = null
     }
     setIsCameraActive(false)
   }
@@ -145,6 +151,27 @@ const DebugModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
     alert(`${type === 'local' ? 'LocalStorage' : 'SessionStorage'} очищен!`)
   }
 
+  const handleSetDefaultCamera = () => {
+    if (!selectedCamera) return
+    setDefaultCameraDeviceId(selectedCamera)
+    setDefaultCameraId(selectedCamera)
+    loadDebugInfo()
+    alert('Камера по умолчанию сохранена')
+  }
+
+  const handleClearDefaultCamera = () => {
+    clearDefaultCameraDeviceId()
+    setDefaultCameraId(null)
+    loadDebugInfo()
+    alert('Камера по умолчанию сброшена')
+  }
+
+  const defaultCameraLabel = () => {
+    if (!defaultCameraId) return '—'
+    const match = cameras.find(c => c.deviceId === defaultCameraId)
+    return match ? match.label : `${defaultCameraId.slice(0, 8)}...`
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="🔧 Отладочная панель">
       <div className="debug-panel">
@@ -171,6 +198,15 @@ const DebugModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
                 <button onClick={testCamera} className="test-camera-btn">
                   Тестировать камеру
                 </button>
+                <button onClick={handleSetDefaultCamera} className="test-camera-btn">
+                  Установить по умолчанию
+                </button>
+                <button onClick={handleClearDefaultCamera} className="test-camera-btn" disabled={!defaultCameraId}>
+                  Сбросить по умолчанию
+                </button>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                Текущая камера по умолчанию: <strong>{defaultCameraLabel()}</strong>
               </div>
               
               <div className="camera-preview">

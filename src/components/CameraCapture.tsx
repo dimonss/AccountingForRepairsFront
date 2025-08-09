@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { RepairPhoto } from '../store/api/repairsApi';
 import { generateUUID, compressImage, formatFileSize, getBase64Size } from '../utils/imageUtils';
 import './CameraCapture.css';
+import { getDefaultCameraDeviceId } from '../utils/cameraPreferences';
 
 interface CameraCaptureProps {
   isOpen: boolean;
@@ -22,7 +23,31 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [defaultCameraId, setDefaultCameraId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDefaultCameraId(getDefaultCameraDeviceId());
+  }, []);
+
+  const buildConstraints = (): MediaStreamConstraints => {
+    const storedId = defaultCameraId || getDefaultCameraDeviceId();
+    if (storedId) {
+      return {
+        video: {
+          deviceId: { exact: storedId },
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 }
+        }
+      };
+    }
+    return {
+      video: {
+        facingMode: facingMode,
+        width: { ideal: 1280, min: 640 },
+        height: { ideal: 720, min: 480 }
+      }
+    };
+  };
 
   const startCamera = useCallback(async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -34,23 +59,15 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     setError(null);
 
     try {
-      // Останавливаем предыдущий поток если есть
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
       if (videoRef.current) {
-        videoRef.current.srcObject = null;
+        (videoRef.current as HTMLVideoElement).srcObject = null;
       }
 
-      const constraints: MediaStreamConstraints = {
-        video: {
-          facingMode: facingMode,
-          width: { ideal: 1280, min: 640 },
-          height: { ideal: 720, min: 480 }
-        }
-      };
-
+      const constraints = buildConstraints();
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
 
@@ -69,6 +86,23 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
           errorMessage = 'Камера не найдена';
         } else if (err.name === 'NotReadableError') {
           errorMessage = 'Камера заблокирована другим приложением';
+        } else if (err.name === 'OverconstrainedError') {
+          // Если сохраненная камера больше не доступна, пробуем без deviceId
+          setDefaultCameraId(null);
+          try {
+            const fallbackStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: facingMode, width: { ideal: 1280, min: 640 }, height: { ideal: 720, min: 480 } }
+            });
+            streamRef.current = fallbackStream;
+            if (videoRef.current) {
+              videoRef.current.srcObject = fallbackStream;
+              videoRef.current.play();
+            }
+            setIsLoading(false);
+            return;
+          } catch (fallbackErr) {
+            console.error('Fallback camera access error:', fallbackErr);
+          }
         }
       }
       
@@ -76,7 +110,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [facingMode]);
+  }, [facingMode, defaultCameraId]);
 
   const handleClose = useCallback(() => {
     if (streamRef.current) {
@@ -84,7 +118,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
       streamRef.current = null;
     }
     if (videoRef.current) {
-      videoRef.current.srcObject = null;
+      (videoRef.current as HTMLVideoElement).srcObject = null;
     }
     onClose();
   }, [onClose]);
@@ -94,16 +128,9 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
 
     const video = videoRef.current;
 
-    const startCamera = async () => {
+    const start = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: facingMode,
-            width: { ideal: 1280, min: 640 },
-            height: { ideal: 720, min: 480 }
-          }
-        });
-
+        const stream = await navigator.mediaDevices.getUserMedia(buildConstraints());
         if (video) {
           video.srcObject = stream;
           streamRef.current = stream;
@@ -114,7 +141,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
       }
     };
 
-    startCamera();
+    start();
 
     return () => {
       if (streamRef.current) {
@@ -122,10 +149,10 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
         streamRef.current = null;
       }
       if (video) {
-        video.srcObject = null;
+        (video as HTMLVideoElement).srcObject = null;
       }
     };
-  }, [isOpen, facingMode, onClose]);
+  }, [isOpen, facingMode, onClose, defaultCameraId]);
 
   // Cleanup портала при размонтировании
   useEffect(() => {
@@ -165,34 +192,26 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   // };
 
   const capturePhoto = async () => {
-    if (!videoRef.current || !canvasRef.current || isProcessing) return;
+    if (!videoRef.current || !canvasRef.current) return;
 
-    setIsProcessing(true);
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      setError('Canvas context not available');
+      return;
+    }
 
     try {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-
-      if (!context) {
-        setError('Canvas context not available');
-        return;
-      }
-
-      // Устанавливаем размер canvas равный размеру видео
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-
-      // Рисуем кадр из видео на canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Получаем исходное изображение
       const originalDataURL = canvas.toDataURL('image/jpeg', 0.9);
       const originalSize = getBase64Size(originalDataURL);
-      
       console.log(`📸 Original photo: ${formatFileSize(originalSize)}`);
 
-      // Сжимаем если больше 1MB
       const compressedDataURL = originalSize > 1 * 1024 * 1024 
         ? await compressImage(originalDataURL)
         : originalDataURL;
@@ -200,7 +219,6 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
       const finalSize = getBase64Size(compressedDataURL);
       console.log(`✅ Final photo: ${formatFileSize(finalSize)}`);
       
-      // Генерируем UUID имя файла
       const uuid = generateUUID();
       const filename = `${uuid}.jpg`;
 
@@ -215,8 +233,6 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     } catch (error) {
       console.error('Failed to capture photo:', error);
       setError('Не удалось сделать фото. Попробуйте еще раз.');
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -225,7 +241,6 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
-    // Закрываем только при клике на overlay, не на modal
     if (e.target === e.currentTarget) {
       handleClose();
     }
@@ -299,15 +314,11 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
                   </button>
 
                 <button
-                  className={`camera-capture-btn ${isProcessing ? 'processing' : ''}`}
+                  className={`camera-capture-btn`}
                   onClick={capturePhoto}
-                  disabled={isLoading || isProcessing}
+                  disabled={isLoading}
                 >
-                  {isProcessing ? (
-                    <div className="processing-spinner">📸</div>
-                  ) : (
-                    <div className="capture-circle"/>
-                  )}
+                  <div className="capture-circle"/>
                 </button>
                 
                 <button

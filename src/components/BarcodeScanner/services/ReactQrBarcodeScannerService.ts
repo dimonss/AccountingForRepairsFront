@@ -2,6 +2,7 @@ import React from 'react';
 import BarcodeScannerComponent from 'react-qr-barcode-scanner';
 import type { IScannerService, IScanResult, IScannerError } from '../interfaces/IScannerService';
 import { Result, BarcodeFormat } from '@zxing/library'; // Импортируем типы из zxing
+import { getDefaultCameraDeviceId } from '../../../utils/cameraPreferences';
 
 // Интерфейс для результата от библиотеки react-qr-barcode-scanner
 interface BarcodeScannerResult {
@@ -19,18 +20,25 @@ export class ReactQrBarcodeScannerService implements IScannerService {
   async startScanning(): Promise<void> {
     if (this.isSupported()) {
       try {
-        // Запрашиваем доступ к камере с оптимальными настройками
-        const constraints: MediaStreamConstraints = {
-          video: {
-            facingMode: 'environment', // Предпочитаем заднюю камеру
-            width: { ideal: 1280, min: 640 },
-            height: { ideal: 720, min: 480 }
-          }
-        };
+        const defaultId = getDefaultCameraDeviceId();
+        const constraints: MediaStreamConstraints = defaultId
+          ? {
+              video: {
+                deviceId: { exact: defaultId },
+                width: { ideal: 1280, min: 640 },
+                height: { ideal: 720, min: 480 }
+              }
+            }
+          : {
+              video: {
+                facingMode: 'environment', // Предпочитаем заднюю камеру
+                width: { ideal: 1280, min: 640 },
+                height: { ideal: 720, min: 480 }
+              }
+            };
 
         await navigator.mediaDevices.getUserMedia(constraints);
       } catch (_) { // eslint-disable-line @typescript-eslint/no-unused-vars
-        // Если не получилось с оптимальными настройками, пробуем базовые
         try {
           await navigator.mediaDevices.getUserMedia({ video: true });
         } catch (basicErr) {
@@ -183,11 +191,12 @@ export class ReactQrBarcodeScannerService implements IScannerService {
   }
 
   renderScanner(width: string, height: string): React.ReactElement {
-    return React.createElement(BarcodeScannerComponent, {
+    const defaultId = getDefaultCameraDeviceId();
+    const props: any = {
       width,
       height,
       delay: 100,
-      facingMode: 'environment',
+      facingMode: defaultId ? undefined : 'environment',
       onUpdate: (err: unknown, result?: Result) => {
         if (result) {
           this.handleScanResult(result);
@@ -198,6 +207,10 @@ export class ReactQrBarcodeScannerService implements IScannerService {
       onError: (error: unknown) => {
         this.handleScanError(error);
       }
-    });
+    };
+    if (defaultId) {
+      props.constraints = { video: { deviceId: { exact: defaultId } } };
+    }
+    return React.createElement(BarcodeScannerComponent as unknown as any, props);
   }
 }
