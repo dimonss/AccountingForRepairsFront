@@ -180,11 +180,9 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
                                 required
                             >
                                 <option value="">Выберите тип устройства</option>
-                                <option value="smartphone">Смартфон</option>
-                                <option value="laptop">Ноутбук</option>
-                                <option value="desktop">Настольный компьютер</option>
-                                <option value="tablet">Планшет</option>
-                                <option value="printer">Принтер</option>
+                                <option value="аutonomous_heater">Автономный отопитель</option>
+                                <option value="pump">Насос</option>
+                                <option value="radio">Рация</option>
                                 <option value="monitor">Монитор</option>
                                 <option value="other">Другое</option>
                             </select>
@@ -192,14 +190,19 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
 
                         <div className="form-group">
                             <label htmlFor="brand">Бренд *</label>
-                            <input
-                                type="text"
+                            <select
                                 id="brand"
                                 name="brand"
                                 value={formData.brand}
                                 onChange={handleChange}
                                 required
-                            />
+                            >
+                                <option value="">Выберите тип устройства</option>
+                                <option value="wberspacher">Eberspacher</option>
+                                <option value="webasto">Webasto</option>
+                                <option value="Китай">Китай</option>
+                                <option value="other">Другое</option>
+                            </select>
                         </div>
 
                         <div className="form-group">
