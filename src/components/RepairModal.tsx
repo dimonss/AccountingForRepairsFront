@@ -180,7 +180,8 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
                                 required
                             >
                                 <option value="">Выберите тип устройства</option>
-                                <option value="аutonomous_heater">Автономный отопитель</option>
+                                <option value="autonomous_heater">Автономный отопитель</option>
+                                <option value="refrigerator">Холодильник</option>
                                 <option value="pump">Насос</option>
                                 <option value="radio">Рация</option>
                                 <option value="monitor">Монитор</option>
@@ -197,10 +198,14 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
                                 onChange={handleChange}
                                 required
                             >
-                                <option value="">Выберите тип устройства</option>
-                                <option value="wberspacher">Eberspacher</option>
+                                <option value="">Выберите бренд</option>
                                 <option value="webasto">Webasto</option>
-                                <option value="Китай">Китай</option>
+                                <option value="eberspacher">Eberspacher</option>
+                                <option value="planar">Планар</option>
+                                <option value="china">Китай</option>
+                                <option value="teplostar">Теплостар</option>
+                                <option value="sputnik">Спутник</option>
+                                <option value="binar">Бинар</option>
                                 <option value="other">Другое</option>
                             </select>
                         </div>

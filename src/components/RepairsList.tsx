@@ -5,6 +5,7 @@ import Modal from './Modal'
 import RepairModal from './RepairModal'
 import { BarcodeScanner } from './BarcodeScanner'
 import { PhotoGallery } from './PhotoGallery'
+import { getDeviceTypeText, getBrandText, getStatusText, getStatusColor } from '../utils/displayUtils'
 
 const RepairsList = () => {
   // Filter states
@@ -174,27 +175,7 @@ const RepairsList = () => {
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return '#f39c12'
-      case 'in_progress': return '#3498db'
-      case 'waiting_parts': return '#e74c3c'
-      case 'completed': return '#27ae60'
-      case 'cancelled': return '#95a5a6'
-      default: return '#f39c12'
-    }
-  }
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending': return 'ОЖИДАЕТ'
-      case 'in_progress': return 'В РАБОТЕ'
-      case 'waiting_parts': return 'ОЖИДАНИЕ ЗАПЧАСТЕЙ'
-      case 'completed': return 'ЗАВЕРШЁН'
-      case 'cancelled': return 'ОТМЕНЁН'
-      default: return status.replace('_', ' ').toUpperCase()
-    }
-  }
 
   return (
     <div className="repairs-list">
@@ -203,7 +184,7 @@ const RepairsList = () => {
           <div className="search-box">
             <input
               type="text"
-              placeholder="Имя, телефон, email, серийный номер, номер ремонта..."
+              placeholder="Имя, телефон, номер ремонта, серийный номер, email..."
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
               className="search-input"
@@ -276,7 +257,7 @@ const RepairsList = () => {
               {repairs.map((repair: Repair) => (
                 <div key={repair.id} className="repair-card">
                   <div className="repair-header">
-                    <h3>{repair.device_type} - {repair.brand} {repair.model}</h3>
+                    <h3>{getDeviceTypeText(repair.device_type)} - {getBrandText(repair.brand)} {repair.model}</h3>
                     <div 
                       className="status-badge" 
                       style={{ backgroundColor: getStatusColor(repair.repair_status) }}
@@ -438,7 +419,7 @@ const RepairsList = () => {
               Вы уверены, что хотите удалить запись о ремонте?
             </p>
             <div className="repair-summary">
-              <p><strong>Устройство:</strong> {repairToDelete.device_type} - {repairToDelete.brand} {repairToDelete.model}</p>
+              <p><strong>Устройство:</strong> {getDeviceTypeText(repairToDelete.device_type)} - {getBrandText(repairToDelete.brand)} {repairToDelete.model}</p>
               <p><strong>Клиент:</strong> {repairToDelete.client_name}</p>
               <p><strong>Проблема:</strong> {repairToDelete.issue_description}</p>
               <p><strong>Статус:</strong> {getStatusText(repairToDelete.repair_status)}</p>
