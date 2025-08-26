@@ -6,12 +6,14 @@ import { useLogoutMutation } from './store/api/authApi'
 import ProtectedRoute from './components/ProtectedRoute'
 import RepairsList from './components/RepairsList'
 import RepairModal from './components/RepairModal'
+import ReportsModal from './components/ReportsModal'
 import Modal from './components/Modal'
 import DebugModal from './components/DebugModal'
 import './App.css'
 
 function App() {
   const [showRepairModal, setShowRepairModal] = useState(false)
+  const [showReportsModal, setShowReportsModal] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [showDebugModal, setShowDebugModal] = useState(false)
   const { user, refreshToken } = useSelector((state: RootState) => state.auth)
@@ -67,6 +69,12 @@ function App() {
               Добавить Ремонт
             </button>
             <button 
+              className="reports-btn"
+              onClick={() => setShowReportsModal(true)}
+            >
+              📊 Отчеты
+            </button>
+            <button 
               className="logout-btn"
               onClick={handleLogoutClick}
             >
@@ -87,6 +95,12 @@ function App() {
         isOpen={showRepairModal}
         onSuccess={() => setShowRepairModal(false)}
         onCancel={() => setShowRepairModal(false)}
+      />
+      
+      {/* Reports Modal */}
+      <ReportsModal
+        isOpen={showReportsModal}
+        onClose={() => setShowReportsModal(false)}
       />
       
       {/* Debug Modal */}
