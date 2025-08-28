@@ -940,6 +940,7 @@ body {
   }
 
   .add-repair-btn,
+  .reports-btn,
   .logout-btn {
     width: 100%;
     justify-content: center;
@@ -1358,6 +1359,7 @@ body {
   }
 
   .add-repair-btn,
+  .reports-btn,
   .logout-btn {
     padding: 0.5rem 0.75rem;
     font-size: 0.8rem;
@@ -1472,6 +1474,7 @@ body {
   }
 
   .add-repair-btn,
+  .reports-btn,
   .logout-btn {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;

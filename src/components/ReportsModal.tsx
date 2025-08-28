@@ -310,16 +310,6 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
         </div>
-
-        {/* Export Section */}
-        <div className="export-section">
-          <h4>Экспорт отчетов</h4>
-          <div className="export-buttons">
-            <button className="export-btn excel">
-              📊 Экспорт в Excel
-            </button>
-          </div>
-        </div>
       </div>
     </Modal>
   );

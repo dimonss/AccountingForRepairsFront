@@ -47,7 +47,7 @@
   margin-bottom: 25px;
   border-bottom: 2px solid #e9ecef;
   overflow-x: auto;
-  padding-bottom: 5px;
+  padding: 5px 0 5px 0;
 }
 
 .tab-button {
@@ -64,10 +64,7 @@
   min-width: 120px;
 }
 
-.tab-button:hover {
-  background: #e9ecef;
-  color: #495057;
-}
+
 
 .tab-button.active {
   background: #007bff;
@@ -244,7 +241,6 @@
   display: flex;
   align-items: end;
   gap: 15px;
-  height: 300px;
   padding: 20px;
   background: white;
   border-radius: 12px;
@@ -320,7 +316,6 @@
 }
 
 .financial-amount {
-  font-size: 1.5rem;
   font-weight: 700;
   color: #28a745;
 }
@@ -347,30 +342,6 @@
 .financial-summary strong {
   color: #495057;
 }
-
-/* Export Section */
-.export-section {
-  margin-top: 30px;
-  padding: 25px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
-}
-
-.export-section h4 {
-  margin: 0 0 20px 0;
-  color: #495057;
-  font-size: 18px;
-  text-align: center;
-}
-
-.export-buttons {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
 .export-btn {
   padding: 12px 24px;
   border: none;
@@ -469,7 +440,6 @@
   }
   
   .monthly-chart {
-    height: 250px;
     gap: 10px;
   }
   
@@ -480,11 +450,6 @@
   .monthly-bar-container {
     width: 30px;
     height: 150px;
-  }
-  
-  .export-buttons {
-    flex-direction: column;
-    align-items: center;
   }
   
   .export-btn {
@@ -504,10 +469,6 @@
   
   .stat-number {
     font-size: 2rem;
-  }
-  
-  .monthly-chart {
-    height: 200px;
   }
   
   .monthly-bar-container {
