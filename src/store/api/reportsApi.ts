@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../store';
-import { getRepairsApiUrl, getAuthApiUrl } from '../../config/api.config';
+import { getReportsApiUrl, getAuthApiUrl } from '../../config/api.config';
 
 // Types for reports data
 export interface OverviewStats {
@@ -85,7 +85,7 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   const baseQuery = fetchBaseQuery({
-    baseUrl: getRepairsApiUrl().replace('/repairs', '/reports'),
+    baseUrl: getReportsApiUrl(),
     prepareHeaders: (headers, { getState }) => {
       const state = getState() as RootState;
       const token = state.auth.accessToken;

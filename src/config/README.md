@@ -43,9 +43,9 @@ Both frontend and backend served from the same domain root
 #### 3. Production - API with same base path
 ```bash
 # .env.production
-VITE_API_BASE_URL=/repairs_accounting
+VITE_API_BASE_URL=/repairs_accounting/api
 ```
-Both frontend and API under the same base path
+Both frontend and API under the same base path (API proxied under `/repairs_accounting/api`)
 
 #### 4. Production - Different Domain
 ```bash
