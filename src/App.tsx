@@ -9,6 +9,7 @@ import RepairModal from './components/RepairModal'
 import ReportsModal from './components/ReportsModal'
 import Modal from './components/Modal'
 import DebugModal from './components/DebugModal'
+import PWAInstaller from './components/PWAInstaller'
 import './App.css'
 
 function App() {
@@ -50,7 +51,8 @@ function App() {
 
   return (
     <ProtectedRoute>
-      <div className="App">
+      <PWAInstaller>
+        <div className="App">
         <header className="app-header">
           <div className="header-left">
             <h1>🔧 Система Ремонтов</h1>
@@ -133,6 +135,7 @@ function App() {
           </div>
         </div>
       </Modal>
+      </PWAInstaller>
     </ProtectedRoute>
   )
 }
