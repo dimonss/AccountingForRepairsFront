@@ -4,6 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/repairs_accounting/',
   plugins: [
     react(),
     VitePWA({
@@ -17,8 +18,8 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait-primary',
-        scope: '/',
-        start_url: '/',
+        scope: '/repairs_accounting/',
+        start_url: '/repairs_accounting/',
         icons: [
           {
             src: 'icons/icon-192x192.png',
@@ -94,7 +95,6 @@ export default defineConfig({
       }
     })
   ],
-  base: '/repairs_accounting/',
   server: {
     host: true,
     port: 5173,
