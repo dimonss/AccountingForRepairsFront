@@ -384,6 +384,7 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
                             <PhotoUpload
                                 photos={formData.photos || []}
                                 onPhotosChange={handlePhotosChange}
+                                repairId={repair?.id}
                             />
                         </div>
                     </div>

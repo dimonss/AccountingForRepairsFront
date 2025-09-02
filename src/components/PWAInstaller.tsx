@@ -83,21 +83,6 @@ const PWAInstaller: React.FC<PWAInstallerProps> = ({ children }) => {
     console.log('- BeforeInstallPrompt:', 'BeforeInstallPromptEvent' in window);
     console.log('- Display mode standalone:', window.matchMedia('(display-mode: standalone)').matches);
 
-    // Проверяем доступность иконок
-    const checkIcons = async () => {
-      try {
-        const icon192 = await fetch('/repairs_accounting/icons/icon-192x192.png');
-        const icon512 = await fetch('/repairs_accounting/icons/icon-512x512.png');
-        console.log('Icons check:', { 
-          icon192: icon192.ok ? 'OK' : 'FAIL', 
-          icon512: icon512.ok ? 'OK' : 'FAIL' 
-        });
-      } catch (error) {
-        console.log('Icons check failed:', error);
-      }
-    };
-    
-    checkIcons();
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -108,6 +93,8 @@ const PWAInstaller: React.FC<PWAInstallerProps> = ({ children }) => {
       if (!isInstalled && !deferredPrompt) {
         console.log('Fallback: showing install prompt after timeout');
         setShowInstallPrompt(true);
+      } else if (isInstalled) {
+        console.log('PWA already installed, not showing install prompt');
       }
     }, 3000);
 
@@ -118,6 +105,8 @@ const PWAInstaller: React.FC<PWAInstallerProps> = ({ children }) => {
         if (!isInstalled) {
           setShowInstallPrompt(true);
           console.log('Dev mode: install prompt shown');
+        } else {
+          console.log('Dev mode: PWA already installed, not showing prompt');
         }
       }, 1000);
     }
