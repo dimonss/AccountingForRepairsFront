@@ -22,17 +22,17 @@ export default defineConfig({
         start_url: '/repairs_accounting/',
         icons: [
           {
-            src: 'icons/icon-192x192.png',
+            src: '/repairs_accounting/icons/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'icons/icon-512x512.png',
+            src: '/repairs_accounting/icons/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: 'icons/icon-192x192.png',
+            src: '/repairs_accounting/icons/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'maskable'
@@ -50,8 +50,7 @@ export default defineConfig({
               expiration: {
                 maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              },
-
+              }
             }
           },
           {
