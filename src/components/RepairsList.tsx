@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useSelector } from 'react-redux'
 import { useGetRepairsQuery, useDeleteRepairMutation, useUpdateRepairStatusMutation } from '../store/api/repairsApi'
 import type { Repair, RepairPhoto, SearchParams } from '../store/api/repairsApi'
+import type { RootState } from '../store'
 import Modal from './Modal'
 import RepairModal from './RepairModal'
 import { BarcodeScanner } from './BarcodeScanner'
@@ -8,6 +10,9 @@ import { PhotoGallery } from './PhotoGallery'
 import { getDeviceTypeText, getBrandText, getStatusText, getStatusColor } from '../utils/displayUtils'
 
 const RepairsList = () => {
+  // Connection status
+  const { isOnline } = useSelector((state: RootState) => state.connection)
+  
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [searchFilter, setSearchFilter] = useState<string>('')
@@ -58,9 +63,15 @@ const RepairsList = () => {
     sortOrder: 'DESC'
   }), [debouncedSearchFilter, statusFilter, currentPage, pageSize])
   
-  const { data: repairsResponse, error, isLoading } = useGetRepairsQuery(searchParams)
+  const { data: repairsResponse, error, isLoading } = useGetRepairsQuery(searchParams, {
+    // Don't skip queries, let RTK Query handle caching automatically
+    // RTK Query will return cached data if available when offline
+  })
   const [deleteRepair] = useDeleteRepairMutation()
   const [updateRepairStatus] = useUpdateRepairStatusMutation()
+  
+  // Check if we're showing cached data
+  const isShowingCachedData = !isOnline && repairsResponse && !isLoading
   
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [repairToDelete, setRepairToDelete] = useState<Repair | null>(null)
@@ -184,16 +195,19 @@ const RepairsList = () => {
           <div className="search-box">
             <input
               type="text"
-              placeholder="Имя, телефон, номер ремонта, серийный номер, email..."
+              placeholder={isOnline ? "Имя, телефон, номер ремонта, серийный номер, email..." : "Поиск недоступен в оффлайн режиме"}
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
               className="search-input"
+              disabled={!isOnline}
+              title={!isOnline ? "Поиск недоступен в оффлайн режиме" : ""}
             />
             <button
               type="button"
               onClick={handleOpenScanner}
               className="barcode-scan-btn"
-              title="Сканировать штрихкод"
+              title={!isOnline ? "Сканирование недоступно в оффлайн режиме" : "Сканировать штрихкод"}
+              disabled={!isOnline}
             >
               📷
             </button>
@@ -203,6 +217,8 @@ const RepairsList = () => {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="status-filter"
+            disabled={!isOnline}
+            title={!isOnline ? "Фильтры недоступны в оффлайн режиме" : ""}
           >
             <option value="all">Все статусы</option>
             <option value="pending">Ожидает</option>
@@ -213,7 +229,12 @@ const RepairsList = () => {
           </select>
           
           {(statusFilter !== 'all' || searchFilter) && (
-            <button onClick={handleClearFilters} className="clear-filters-btn">
+            <button 
+              onClick={handleClearFilters} 
+              className="clear-filters-btn"
+              disabled={!isOnline}
+              title={!isOnline ? "Очистка фильтров недоступна в оффлайн режиме" : ""}
+            >
               Очистить фильтры
             </button>
           )}
@@ -223,6 +244,11 @@ const RepairsList = () => {
           <span>Всего: {pagination?.totalWithoutFilters || pagination?.total || 0}</span>
           {(statusFilter !== 'all' || searchFilter) && pagination?.total !== pagination?.totalWithoutFilters && (
             <span>Найдено: {pagination?.total || 0}</span>
+          )}
+          {isShowingCachedData && (
+            <span className="offline-indicator" title="Данные загружены из кэша">
+              📱 Оффлайн
+            </span>
           )}
           {pagination && pagination.totalPages > 1 && (
             <span>Страница {pagination.page} из {pagination.totalPages}</span>
@@ -246,7 +272,9 @@ const RepairsList = () => {
         <>
           {repairs.length === 0 ? (
             <div className="no-repairs">
-              {searchFilter || statusFilter !== 'all' ? (
+              {!isOnline ? (
+                <p>Нет подключения к интернету. Данные из кэша недоступны.</p>
+              ) : searchFilter || statusFilter !== 'all' ? (
                 <p>По заданным фильтрам ничего не найдено. Попробуйте изменить критерии поиска.</p>
               ) : (
                 <p>Ремонты не найдены. Добавьте первый ремонт!</p>

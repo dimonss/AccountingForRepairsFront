@@ -66,7 +66,10 @@ The system tests connection quality by making lightweight GET requests to the re
 ### Offline Behavior
 - **Repair creation**: Completely blocked when offline
 - **Repair editing**: Allowed (assumes user has local data)
-- **Search/filtering**: Uses cached data when available
+- **Search/filtering**: Completely blocked when offline (requires server requests)
+- **Barcode scanning**: Blocked when offline
+- **Filter controls**: All disabled when offline
+- **Repair list**: Shows cached data when available, displays offline indicator
 - **Reports**: Uses cached data when available
 - **Authentication**: Maintains existing behavior
 
