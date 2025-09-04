@@ -70,6 +70,9 @@ const RepairsList = () => {
   const [deleteRepair] = useDeleteRepairMutation()
   const [updateRepairStatus] = useUpdateRepairStatusMutation()
   
+  // State to store last successful data for offline fallback
+  const [lastSuccessfulData, setLastSuccessfulData] = useState<typeof repairsResponse | null>(null)
+  
   // Check if we're showing cached data
   const isShowingCachedData = !isOnline && repairsResponse && !isLoading
   
@@ -85,13 +88,41 @@ const RepairsList = () => {
   const [galleryPhotos, setGalleryPhotos] = useState<RepairPhoto[]>([])
   const [galleryInitialIndex, setGalleryInitialIndex] = useState(0)
 
+  // Save successful data for offline fallback
+  useEffect(() => {
+    if (repairsResponse && !error && isOnline) {
+      setLastSuccessfulData(repairsResponse)
+    }
+  }, [repairsResponse, error, isOnline])
+
+  // Determine which data to show
+  const finalRepairsResponse = useMemo(() => {
+    // If we have fresh data, use it
+    if (repairsResponse && !error) {
+      return repairsResponse
+    }
+    
+    // If we're offline and have cached data, use it
+    if (!isOnline && lastSuccessfulData) {
+      return lastSuccessfulData
+    }
+    
+    return repairsResponse
+  }, [repairsResponse, error, isOnline, lastSuccessfulData])
+
   // Get repairs array from response
-  const repairs = repairsResponse?.data || []
-  const pagination = repairsResponse?.pagination
+  const repairs = finalRepairsResponse?.data || []
+  const pagination = finalRepairsResponse?.pagination
 
   const handleClearFilters = () => {
     setStatusFilter('all')
     setSearchFilter('')
+  }
+
+  const handleGoBack = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1)
+    }
   }
 
   const handleBarcodeScanned = (scannedCode: string) => {
@@ -265,6 +296,15 @@ const RepairsList = () => {
       {error && (
         <div className="error-message">
           <p>Ошибка загрузки ремонтов: {(error as { data?: { error?: string } })?.data?.error || 'Неизвестная ошибка'}</p>
+          {currentPage > 1 && (
+            <button 
+              onClick={handleGoBack}
+              className="go-back-btn"
+              title="Вернуться на предыдущую страницу"
+            >
+              ← Назад
+            </button>
+          )}
         </div>
       )}
 

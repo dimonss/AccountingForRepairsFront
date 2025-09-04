@@ -71,6 +71,8 @@ The system tests connection quality using RTK Query to make lightweight GET requ
 - **Barcode scanning**: Blocked when offline
 - **Filter controls**: All disabled when offline
 - **Repair list**: Shows cached data when available, displays offline indicator
+- **Pagination**: When navigating to uncached pages offline, shows error with "Back" button to return to previous page
+- **Fallback mechanism**: Simple "← Назад" button allows users to return to the last accessible page
 - **Reports**: Uses cached data when available
 - **Authentication**: Maintains existing behavior
 
