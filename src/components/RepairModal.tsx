@@ -1,6 +1,8 @@
 import {useState, useEffect} from 'react'
+import {useSelector} from 'react-redux'
 import {useCreateRepairMutation, useUpdateRepairMutation, useUploadRepairPhotosMutation} from '../store/api/repairsApi'
 import type {Repair, RepairPhoto} from '../store/api/repairsApi'
+import type {RootState} from '../store'
 import Modal from './Modal'
 import {BarcodeScanner} from './BarcodeScanner'
 import {PhotoUpload} from './PhotoUpload'
@@ -19,6 +21,7 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
     const [uploadPhotos] = useUploadRepairPhotosMutation()
     const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
     const [scanningField, setScanningField] = useState<'serial_number' | 'repair_number' | null>(null)
+    const { isOnline } = useSelector((state: RootState) => state.connection)
 
     const isEditMode = !!repair
     const isLoading = isCreating || isUpdating
@@ -120,6 +123,12 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // Block submission if offline (only for new repairs, allow editing existing ones)
+        if (!isOnline && !isEditMode) {
+            alert('Добавление новых ремонтов недоступно в оффлайн режиме. Пожалуйста, проверьте подключение к интернету.')
+            return
+        }
 
         try {
             const {photos, ...repairData} = formData
@@ -400,7 +409,8 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
                         <button
                             type="submit"
                             className="btn btn-primary"
-                            disabled={isLoading}
+                            disabled={isLoading || (!isOnline && !isEditMode)}
+                            title={(!isOnline && !isEditMode) ? "Добавление новых ремонтов недоступно в оффлайн режиме" : ""}
                         >
                             {isLoading ? 'Сохранение...' : (isEditMode ? 'Сохранить' : 'Создать')}
                         </button>

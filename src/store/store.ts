@@ -3,10 +3,12 @@ import { repairsApi } from './api/repairsApi';
 import { authApi } from './api/authApi';
 import { reportsApi } from './api/reportsApi';
 import authReducer from './authSlice';
+import connectionReducer from './connectionSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    connection: connectionReducer,
     [repairsApi.reducerPath]: repairsApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
     [reportsApi.reducerPath]: reportsApi.reducer,

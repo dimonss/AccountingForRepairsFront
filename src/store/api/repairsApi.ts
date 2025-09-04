@@ -190,6 +190,8 @@ export const repairsApi = createApi({
               { type: 'Repair', id: 'LIST' },
             ]
           : [{ type: 'Repair', id: 'LIST' }],
+      // Reduce caching for search queries to ensure fresh results
+      keepUnusedDataFor: 30, // 30 seconds instead of default 60
     }),
     getRepair: builder.query<ApiResponse<Repair>, number>({
       query: (id) => `/${id}`,
