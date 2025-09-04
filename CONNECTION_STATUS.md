@@ -54,12 +54,13 @@ This document describes the internet connection status monitoring and offline fu
 - `src/App.css` - Added disabled button styles
 
 ### Connection Quality Testing
-The system tests connection quality by making lightweight GET requests to the repairs API endpoint (`/repairs?limit=1`) and measuring response time:
-- **Good**: Response time < 2 seconds
-- **Poor**: Response time 2-5 seconds or failed requests
+The system tests connection quality using RTK Query to make lightweight GET requests to the repairs API endpoint (`/repairs?limit=1`):
+- **Good**: Successful response from API
+- **Poor**: Failed requests or API errors
 - **Testing frequency**: Every 30 seconds when online
 - **Endpoint**: Uses the actual API endpoint to ensure the backend is reachable
-- **Authorization**: Includes Bearer token from Redux store for authenticated requests
+- **Authorization**: Uses RTK Query's built-in token refresh logic for authenticated requests
+- **Token refresh**: Automatically handles 401 errors and token refresh attempts
 - **Optimization**: Prevents multiple simultaneous requests and enforces minimum 5-second intervals between tests
 - **Single instance**: Only one component (App.tsx) manages connection monitoring to prevent duplicate requests
 

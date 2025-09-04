@@ -1,19 +1,27 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '../store';
 import { setOnline, setOffline, setConnectionQuality } from '../store';
-import { getRepairsApiUrl } from '../config/api.config';
+import { useGetRepairsQuery } from '../store/api/repairsApi';
 
 export const useConnectionStatus = () => {
   const dispatch = useDispatch();
   const { isOnline, lastOnlineTime, lastOfflineTime, connectionQuality } = useSelector(
     (state: RootState) => state.connection
   );
-  const { accessToken } = useSelector((state: RootState) => state.auth);
   
-  // Use ref to store the latest accessToken to avoid recreating the function
-  const accessTokenRef = useRef(accessToken);
-  accessTokenRef.current = accessToken;
+  // State to trigger connection tests
+  const [shouldTestConnection, setShouldTestConnection] = useState(false);
+  
+  // Use RTK Query for connection testing with skip parameter
+  const { data, isSuccess, isError } = useGetRepairsQuery(
+    { limit: 1, page: 1, sortBy: 'created_at', sortOrder: 'DESC' },
+    { 
+      skip: !shouldTestConnection,
+      // Don't cache connection test results
+      refetchOnMountOrArgChange: true
+    }
+  );
   
   // Use ref to track if we're already testing to prevent multiple simultaneous requests
   const isTestingRef = useRef(false);
@@ -21,8 +29,8 @@ export const useConnectionStatus = () => {
   // Use ref to track last test time to prevent too frequent requests
   const lastTestTimeRef = useRef(0);
 
-  // Test connection quality by making a lightweight request
-  const testConnectionQuality = useCallback(async () => {
+  // Test connection quality using RTK Query (includes token refresh logic)
+  const testConnectionQuality = useCallback(() => {
     const now = Date.now();
     
     // Prevent multiple simultaneous requests
@@ -38,47 +46,24 @@ export const useConnectionStatus = () => {
     isTestingRef.current = true;
     lastTestTimeRef.current = now;
     
-    try {
-      const startTime = Date.now();
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-      
-      // Prepare headers
-      const headers: HeadersInit = {
-        'Accept': 'application/json',
-      };
-      
-      // Add authorization header if token exists (use ref to get latest value)
-      if (accessTokenRef.current) {
-        headers['Authorization'] = `Bearer ${accessTokenRef.current}`;
-      }
-      
-      // Use the repairs API endpoint for connection testing
-      const response = await fetch(`${getRepairsApiUrl()}?limit=1`, {
-        method: 'GET',
-        cache: 'no-cache',
-        signal: controller.signal,
-        headers
-      });
-      
-      clearTimeout(timeoutId);
-      const endTime = Date.now();
-      const responseTime = endTime - startTime;
-      
-      // Consider response time and status for quality assessment
-      if (response.ok && responseTime < 2000) {
+    // Trigger the RTK Query request
+    setShouldTestConnection(true);
+  }, []);
+  
+  // Handle connection test results
+  useEffect(() => {
+    if (shouldTestConnection && (isSuccess || isError)) {
+      if (isSuccess && data) {
         dispatch(setConnectionQuality('good'));
-      } else if (response.ok && responseTime < 5000) {
-        dispatch(setConnectionQuality('poor'));
-      } else {
+      } else if (isError) {
         dispatch(setConnectionQuality('poor'));
       }
-    } catch {
-      dispatch(setConnectionQuality('poor'));
-    } finally {
+      
+      // Reset state
+      setShouldTestConnection(false);
       isTestingRef.current = false;
     }
-  }, [dispatch]);
+  }, [shouldTestConnection, isSuccess, isError, data, dispatch]);
 
   // Handle online event
   const handleOnline = useCallback(() => {
