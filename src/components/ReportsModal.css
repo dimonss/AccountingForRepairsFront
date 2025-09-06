@@ -127,33 +127,33 @@
 }
 
 .stat-card.pending {
-  border-color: #ffc107;
-  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  border-color: #f39c12;
+  background: linear-gradient(135deg, #fef5e7, #fdebd0);
 }
 
 .stat-card.in-progress {
-  border-color: #17a2b8;
-  background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+  border-color: #3498db;
+  background: linear-gradient(135deg, #ebf3fd, #d6eaf8);
 }
 
 .stat-card.completed {
   border-color: #9b59b6;
-  background: linear-gradient(135deg, #e8d5f2, #d2b4de);
+  background: linear-gradient(135deg, #f4ecf7, #e8daef);
 }
 
 .stat-card.issued {
-  border-color: #28a745;
-  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  border-color: #27ae60;
+  background: linear-gradient(135deg, #eafaf1, #d5f4e6);
 }
 
 .stat-card.waiting {
-  border-color: #fd7e14;
-  background: linear-gradient(135deg, #ffe8d1, #ffd8a8);
+  border-color: #e74c3c;
+  background: linear-gradient(135deg, #fdf2f2, #fadbd8);
 }
 
 .stat-card.cancelled {
-  border-color: #dc3545;
-  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+  border-color: #95a5a6;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
 }
 
 /* Completion Rate */
