@@ -256,6 +256,7 @@ const RepairsList = () => {
             <option value="in_progress">В работе</option>
             <option value="waiting_parts">Ожидание запчастей</option>
             <option value="completed">Завершен</option>
+            <option value="issued">Выдан</option>
             <option value="cancelled">Отменен</option>
           </select>
           
@@ -386,6 +387,7 @@ const RepairsList = () => {
                       <option value="in_progress">В работе</option>
                       <option value="waiting_parts">Ожидание запчастей</option>
                       <option value="completed">Завершён</option>
+                      <option value="issued">Выдан</option>
                       <option value="cancelled">Отменён</option>
                     </select>
                     <button 

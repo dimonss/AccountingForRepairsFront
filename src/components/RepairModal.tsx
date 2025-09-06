@@ -355,6 +355,7 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
                                     <option value="in_progress">В работе</option>
                                     <option value="waiting_parts">Ожидание запчастей</option>
                                     <option value="completed">Завершен</option>
+                                    <option value="issued">Выдан</option>
                                     <option value="cancelled">Отменен</option>
                                 </select>
                             </div>

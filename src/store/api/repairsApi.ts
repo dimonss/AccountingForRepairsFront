@@ -22,7 +22,7 @@ export interface Repair {
   client_phone: string;
   client_email?: string;
   issue_description: string;
-  repair_status: 'pending' | 'in_progress' | 'waiting_parts' | 'completed' | 'cancelled';
+  repair_status: 'pending' | 'in_progress' | 'waiting_parts' | 'completed' | 'issued' | 'cancelled';
   estimated_cost?: number;
   actual_cost?: number;
   notes?: string;

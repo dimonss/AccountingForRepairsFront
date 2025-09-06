@@ -137,6 +137,11 @@
 }
 
 .stat-card.completed {
+  border-color: #9b59b6;
+  background: linear-gradient(135deg, #e8d5f2, #d2b4de);
+}
+
+.stat-card.issued {
   border-color: #28a745;
   background: linear-gradient(135deg, #d4edda, #c3e6cb);
 }

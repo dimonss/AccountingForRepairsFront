@@ -9,6 +9,7 @@ export interface OverviewStats {
   pending: number;
   inProgress: number;
   completed: number;
+  issued: number;
   cancelled: number;
   waitingParts: number;
   completionRate: number;

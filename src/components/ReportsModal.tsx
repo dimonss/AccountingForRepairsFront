@@ -32,6 +32,7 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
     pending: 0,
     inProgress: 0,
     completed: 0,
+    issued: 0,
     cancelled: 0,
     waitingParts: 0,
     completionRate: 0
@@ -181,6 +182,10 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
                 <div className="stat-card completed">
                   <h3>Завершено</h3>
                   <div className="stat-number">{stats.completed}</div>
+                </div>
+                <div className="stat-card issued">
+                  <h3>Выдано</h3>
+                  <div className="stat-number">{stats.issued}</div>
                 </div>
                 <div className="stat-card waiting">
                   <h3>Ожидает детали</h3>

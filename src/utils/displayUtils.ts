@@ -31,6 +31,7 @@ export const getStatusText = (status: string): string => {
     case 'in_progress': return 'В РАБОТЕ'
     case 'waiting_parts': return 'ОЖИДАНИЕ ЗАПЧАСТЕЙ'
     case 'completed': return 'ЗАВЕРШЁН'
+    case 'issued': return 'ВЫДАН'
     case 'cancelled': return 'ОТМЕНЁН'
     default: return status.replace('_', ' ').toUpperCase()
   }
@@ -41,7 +42,8 @@ export const getStatusColor = (status: string): string => {
     case 'pending': return '#f39c12'
     case 'in_progress': return '#3498db'
     case 'waiting_parts': return '#e74c3c'
-    case 'completed': return '#27ae60'
+    case 'completed': return '#9b59b6'
+    case 'issued': return '#27ae60'
     case 'cancelled': return '#95a5a6'
     default: return '#f39c12'
   }
