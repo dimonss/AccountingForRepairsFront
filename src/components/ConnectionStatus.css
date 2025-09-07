@@ -67,10 +67,6 @@
 
 /* Hide text on very small screens, show only icon */
 @media (max-width: 480px) {
-  .connection-text {
-    display: none;
-  }
-  
   .connection-status {
     padding: 4px;
     min-width: 24px;

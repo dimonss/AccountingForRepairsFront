@@ -277,11 +277,6 @@ const RepairsList = () => {
           {(statusFilter !== 'all' || searchFilter) && pagination?.total !== pagination?.totalWithoutFilters && (
             <span>Найдено: {pagination?.total || 0}</span>
           )}
-          {isShowingCachedData && (
-            <span className="offline-indicator" title="Данные загружены из кэша">
-              📱 Оффлайн
-            </span>
-          )}
           {pagination && pagination.totalPages > 1 && (
             <span>Страница {pagination.page} из {pagination.totalPages}</span>
           )}
