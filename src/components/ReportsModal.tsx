@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useGetReportsSummaryQuery } from '../store/api/reportsApi';
 import Modal from './Modal';
 import './ReportsModal.css';
 import type { DeviceTypeStats, BrandStats, MonthlyStats } from '../store/api/reportsApi';
+import type { RootState } from '../store';
 
 interface ReportsModalProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface ReportsModalProps {
 const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'devices' | 'brands' | 'monthly' | 'financial'>('overview');
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
+  const { isOnline } = useSelector((state: RootState) => state.connection);
   
   const { data: reportsResponse, isLoading, error, refetch } = useGetReportsSummaryQuery(dateRange, {
     skip: !isOpen
@@ -120,6 +123,7 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
               }
             }}
             className="date-range-select"
+            disabled={!isOnline}
           >
             <option value="week">Неделя</option>
             <option value="month">Месяц</option>

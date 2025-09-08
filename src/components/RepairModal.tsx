@@ -124,9 +124,12 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        // Block submission if offline (only for new repairs, allow editing existing ones)
-        if (!isOnline && !isEditMode) {
-            alert('Добавление новых ремонтов недоступно в оффлайн режиме. Пожалуйста, проверьте подключение к интернету.')
+        // Block submission if offline (both for new repairs and editing existing ones)
+        if (!isOnline) {
+            const message = isEditMode 
+                ? 'Редактирование ремонтов недоступно в оффлайн режиме. Пожалуйста, проверьте подключение к интернету.'
+                : 'Добавление новых ремонтов недоступно в оффлайн режиме. Пожалуйста, проверьте подключение к интернету.'
+            alert(message)
             return
         }
 
@@ -410,8 +413,8 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
                         <button
                             type="submit"
                             className="btn btn-primary"
-                            disabled={isLoading || (!isOnline && !isEditMode)}
-                            title={(!isOnline && !isEditMode) ? "Добавление новых ремонтов недоступно в оффлайн режиме" : ""}
+                            disabled={isLoading || !isOnline}
+                            title={!isOnline ? (isEditMode ? "Редактирование ремонтов недоступно в оффлайн режиме" : "Добавление новых ремонтов недоступно в оффлайн режиме") : ""}
                         >
                             {isLoading ? 'Сохранение...' : (isEditMode ? 'Сохранить' : 'Создать')}
                         </button>

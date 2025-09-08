@@ -121,6 +121,20 @@ body {
   box-shadow: 0 6px 20px rgba(56, 161, 105, 0.6);
 }
 
+.reports-btn:disabled {
+  background: #95a5a6;
+  color: #7f8c8d !important;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.reports-btn:disabled:hover {
+  background: #95a5a6;
+  transform: none;
+  box-shadow: none;
+}
+
 .logout-btn {
   background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
   color: white;
@@ -676,6 +690,20 @@ body {
   box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
 }
 
+.delete-btn:disabled {
+  background: #95a5a6;
+  color: #7f8c8d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.delete-btn:disabled:hover {
+  background: #95a5a6;
+  transform: none;
+  box-shadow: none;
+}
+
 /* Loading and error states */
 .loading, .error {
   text-align: center;
@@ -785,6 +813,19 @@ body {
 
 .edit-btn:active {
   transform: translateY(0);
+}
+
+.edit-btn:disabled {
+  background-color: #95a5a6;
+  color: #7f8c8d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.edit-btn:disabled:hover {
+  background-color: #95a5a6;
+  transform: none;
 }
 
 /* Repair Edit Modal - Fixed Header/Footer Layout */

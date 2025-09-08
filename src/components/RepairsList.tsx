@@ -74,8 +74,7 @@ const RepairsList = () => {
   const [lastSuccessfulData, setLastSuccessfulData] = useState<typeof repairsResponse | null>(null)
   
   // Check if we're showing cached data
-  const isShowingCachedData = !isOnline && repairsResponse && !isLoading
-  
+
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [repairToDelete, setRepairToDelete] = useState<Repair | null>(null)
   
@@ -388,12 +387,16 @@ const RepairsList = () => {
                     <button 
                       onClick={() => handleEditClick(repair)}
                       className="edit-btn"
+                      disabled={!isOnline}
+                      title={!isOnline ? "Редактирование недоступно в оффлайн режиме" : ""}
                     >
                       Редактировать
                     </button>
                     <button 
                       onClick={() => handleDeleteClick(repair)}
                       className="delete-btn"
+                      disabled={!isOnline}
+                      title={!isOnline ? "Удаление недоступно в оффлайн режиме" : ""}
                     >
                       Удалить
                     </button>

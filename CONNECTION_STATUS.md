@@ -17,11 +17,12 @@ This document describes the internet connection status monitoring and offline fu
   - 🔴 Red: Offline
 - **Responsive design**: Adapts to different screen sizes
 
-### 3. Offline Blocking for Repair Creation
-- **Button disabling**: "Add Repair" button is disabled when offline
-- **Modal blocking**: Repair creation is blocked in the modal when offline
+### 3. Offline Blocking for Operations
+- **Button disabling**: "Add Repair", "Edit", "Delete", and "Reports" buttons are disabled when offline
+- **Modal blocking**: Both repair creation and editing are blocked in the modal when offline
+- **Reports blocking**: Reports button and period selection are blocked when offline
 - **User feedback**: Clear tooltips and alerts explain why actions are blocked
-- **Edit mode exception**: Existing repair editing is still allowed when offline
+- **Consistent behavior**: All data modifications and reports require online connection
 
 ### 4. Smart Caching Configuration
 - **Repair creation**: No caching to ensure fresh data
@@ -66,14 +67,16 @@ The system tests connection quality using RTK Query to make lightweight GET requ
 
 ### Offline Behavior
 - **Repair creation**: Completely blocked when offline
-- **Repair editing**: Allowed (assumes user has local data)
+- **Repair editing**: Completely blocked when offline
+- **Repair deletion**: Completely blocked when offline
+- **Reports access**: Completely blocked when offline
+- **Period selection**: Blocked in reports modal when offline
 - **Search/filtering**: Completely blocked when offline (requires server requests)
 - **Barcode scanning**: Blocked when offline
 - **Filter controls**: All disabled when offline
 - **Repair list**: Shows cached data when available, displays offline indicator
 - **Pagination**: When navigating to uncached pages offline, shows error with "Back" button to return to previous page
 - **Fallback mechanism**: Simple "← Назад" button allows users to return to the last accessible page
-- **Reports**: Uses cached data when available
 - **Authentication**: Maintains existing behavior
 
 ## User Experience

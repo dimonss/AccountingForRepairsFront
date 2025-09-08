@@ -74,13 +74,13 @@ function App() {
                                 className="add-repair-btn"
                                 onClick={() => setShowRepairModal(true)}
                                 disabled={!isOnline}
-                                title={!isOnline ? "Добавление ремонтов недоступно в оффлайн режиме" : ""}
                             >
                                 Добавить Ремонт
                             </button>
                             <button
                                 className="reports-btn"
                                 onClick={() => setShowReportsModal(true)}
+                                disabled={!isOnline}
                             >
                                 📊 Отчеты
                             </button>
