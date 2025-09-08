@@ -670,6 +670,13 @@ body {
   background: white;
 }
 
+.status-select:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+  border-color: #dee2e6;
+}
+
 .delete-btn {
   background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
   color: white;

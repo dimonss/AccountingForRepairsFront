@@ -20,6 +20,7 @@ This document describes the internet connection status monitoring and offline fu
 ### 3. Offline Blocking for Operations
 - **Button disabling**: "Add Repair", "Edit", "Delete", and "Reports" buttons are disabled when offline
 - **Modal blocking**: Both repair creation and editing are blocked in the modal when offline
+- **Status changes**: Repair status dropdown is disabled when offline
 - **Reports blocking**: Reports button and period selection are blocked when offline
 - **User feedback**: Clear tooltips and alerts explain why actions are blocked
 - **Consistent behavior**: All data modifications and reports require online connection
@@ -69,6 +70,7 @@ The system tests connection quality using RTK Query to make lightweight GET requ
 - **Repair creation**: Completely blocked when offline
 - **Repair editing**: Completely blocked when offline
 - **Repair deletion**: Completely blocked when offline
+- **Status changes**: Completely blocked when offline
 - **Reports access**: Completely blocked when offline
 - **Period selection**: Blocked in reports modal when offline
 - **Search/filtering**: Completely blocked when offline (requires server requests)

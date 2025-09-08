@@ -376,6 +376,7 @@ const RepairsList = () => {
                       value={repair.repair_status} 
                       onChange={(e) => handleStatusChange(repair.id!, e.target.value)}
                       className="status-select"
+                      disabled={!isOnline}
                     >
                       <option value="pending">Ожидает</option>
                       <option value="in_progress">В работе</option>
