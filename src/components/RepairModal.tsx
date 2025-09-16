@@ -26,6 +26,12 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
     const isEditMode = !!repair
     const isLoading = isCreating || isUpdating
 
+    // Function to convert text to lowercase for consistent storage
+    const toLowerCase = (text: string | undefined): string => {
+        if (!text) return '';
+        return text.toLowerCase();
+    }
+
     const [formData, setFormData] = useState<Partial<Repair>>({
         device_type: '',
         brand: '',
@@ -136,11 +142,17 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
         try {
             const {photos, ...repairData} = formData
 
+            // Convert only client_name to lowercase for consistent storage
+            const normalizedRepairData = {
+                ...repairData,
+                client_name: toLowerCase(repairData.client_name)
+            }
+
             if (isEditMode && repair?.id) {
                 // Update existing repair
                 await updateRepair({
                     id: repair.id,
-                    repair: repairData
+                    repair: normalizedRepairData
                 }).unwrap()
 
                 // Handle photos separately - upload new ones
@@ -156,7 +168,7 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
                 }
             } else {
                 // Create new repair
-                const result = await createRepair(repairData).unwrap()
+                const result = await createRepair(normalizedRepairData).unwrap()
 
                 // Upload photos if any exist and repair was created successfully
                 if (photos && photos.length > 0 && result.data?.id) {

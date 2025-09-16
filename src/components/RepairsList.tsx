@@ -9,6 +9,14 @@ import { BarcodeScanner } from './BarcodeScanner'
 import { PhotoGallery } from './PhotoGallery'
 import { getDeviceTypeText, getBrandText, getStatusText, getStatusColor } from '../utils/displayUtils'
 
+// Function to capitalize first letter of each word for display
+const capitalizeWords = (text: string): string => {
+  if (!text) return '';
+  return text.split(' ').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ');
+}
+
 const RepairsList = () => {
   // Connection status
   const { isOnline } = useSelector((state: RootState) => state.connection)
@@ -330,7 +338,7 @@ const RepairsList = () => {
                   </div>
                   
                   <div className="repair-details">
-                    <p><strong>Клиент:</strong> {repair.client_name}</p>
+                    <p><strong>Клиент:</strong> {capitalizeWords(repair.client_name)}</p>
                     <p><strong>Телефон:</strong> {repair.client_phone}</p>
                     {repair.client_email && <p><strong>Email:</strong> {repair.client_email}</p>}
                     {repair.serial_number && <p><strong>Серийный номер:</strong> {repair.serial_number}</p>}
@@ -489,7 +497,7 @@ const RepairsList = () => {
             </p>
             <div className="repair-summary">
               <p><strong>Устройство:</strong> {getDeviceTypeText(repairToDelete.device_type)} - {getBrandText(repairToDelete.brand)} {repairToDelete.model}</p>
-              <p><strong>Клиент:</strong> {repairToDelete.client_name}</p>
+              <p><strong>Клиент:</strong> {capitalizeWords(repairToDelete.client_name)}</p>
               <p><strong>Проблема:</strong> {repairToDelete.issue_description}</p>
               <p><strong>Статус:</strong> {getStatusText(repairToDelete.repair_status)}</p>
             </div>
