@@ -40,7 +40,7 @@ const RepairsList = () => {
   // Debounce search filter
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearchFilter(searchFilter)
+      setDebouncedSearchFilter(searchFilter.toLowerCase())
     }, 300)
     
     return () => clearTimeout(timer)
