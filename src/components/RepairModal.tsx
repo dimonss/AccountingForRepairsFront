@@ -9,13 +9,14 @@ import {PhotoUpload} from './PhotoUpload'
 import './RepairModal.css'
 
 interface RepairModalProps {
-    repair?: Repair // undefined for create, defined for edit
+    repair?: Repair // undefined for create, defined for edit or copy
+    isEditMode?: boolean // explicitly specify if this is edit mode
     isOpen: boolean
     onSuccess: () => void
     onCancel: () => void
 }
 
-const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) => {
+const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, onCancel}: RepairModalProps) => {
     const [createRepair, {isLoading: isCreating}] = useCreateRepairMutation()
     const [updateRepair, {isLoading: isUpdating}] = useUpdateRepairMutation()
     const [uploadPhotos] = useUploadRepairPhotosMutation()
@@ -23,7 +24,7 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
     const [scanningField, setScanningField] = useState<'serial_number' | 'repair_number' | null>(null)
     const { isOnline } = useSelector((state: RootState) => state.connection)
 
-    const isEditMode = !!repair
+    const isEditMode = explicitEditMode ?? !!repair?.id
     const isLoading = isCreating || isUpdating
 
     // Function to convert text to lowercase for consistent storage
@@ -49,27 +50,49 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
         photos: []
     })
 
-    // Pre-populate form with existing repair data for edit mode
+    // Pre-populate form with existing repair data for edit mode or copied data for create mode
     useEffect(() => {
-        if (repair && isEditMode) {
-            setFormData({
-                device_type: repair.device_type || '',
-                brand: repair.brand || '',
-                model: repair.model || '',
-                serial_number: repair.serial_number || '',
-                repair_number: repair.repair_number || '',
-                client_name: repair.client_name || '',
-                client_phone: repair.client_phone || '',
-                client_email: repair.client_email || '',
-                issue_description: repair.issue_description || '',
-                repair_status: repair.repair_status || 'pending',
-                estimated_cost: repair.estimated_cost || 0,
-                actual_cost: repair.actual_cost || 0,
-                notes: repair.notes || '',
-                photos: repair.photos || []
-            })
-        } else if (!isEditMode) {
-            // Reset form for create mode
+        if (repair) {
+            if (isEditMode && repair.id) {
+                // Edit mode - include all data including photos
+                setFormData({
+                    device_type: repair.device_type || '',
+                    brand: repair.brand || '',
+                    model: repair.model || '',
+                    serial_number: repair.serial_number || '',
+                    repair_number: repair.repair_number || '',
+                    client_name: repair.client_name || '',
+                    client_phone: repair.client_phone || '',
+                    client_email: repair.client_email || '',
+                    issue_description: repair.issue_description || '',
+                    repair_status: repair.repair_status || 'pending',
+                    estimated_cost: repair.estimated_cost || 0,
+                    actual_cost: repair.actual_cost || 0,
+                    notes: repair.notes || '',
+                    photos: repair.photos || []
+                })
+            } else {
+                // Create mode with copied data - exclude photos and reset some fields
+                const repairData = repair as Repair
+                setFormData({
+                    device_type: repairData.device_type || '',
+                    brand: repairData.brand || '',
+                    model: repairData.model || '',
+                    serial_number: repairData.serial_number || '',
+                    repair_number: repairData.repair_number || '',
+                    client_name: repairData.client_name || '',
+                    client_phone: repairData.client_phone || '',
+                    client_email: repairData.client_email || '',
+                    issue_description: repairData.issue_description || '',
+                    repair_status: 'pending', // Always start with pending for new repairs
+                    estimated_cost: repairData.estimated_cost || 0,
+                    actual_cost: 0, // Reset actual cost for new repairs
+                    notes: repairData.notes || '',
+                    photos: [] // No photos for copied repairs
+                })
+            }
+        } else {
+            // Reset form for create mode without copied data
             setFormData({
                 device_type: '',
                 brand: '',
@@ -190,7 +213,7 @@ const RepairModal = ({repair, isOpen, onSuccess, onCancel}: RepairModalProps) =>
     return (
         <Modal isOpen={isOpen} onClose={onCancel}>
             <div className="repair-modal">
-                <h2>{isEditMode ? 'Редактировать ремонт' : 'Добавить новый ремонт'}</h2>
+                <h2>{isEditMode ? 'Редактировать ремонт' : (repair && !repair.id ? 'Добавить ремонт (скопировано)' : 'Добавить новый ремонт')}</h2>
                 
                 <form onSubmit={handleSubmit} className="repair-form">
                     <div className="form-row">

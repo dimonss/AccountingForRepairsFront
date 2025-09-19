@@ -167,6 +167,28 @@ const RepairsList = () => {
     setShowRepairModal(true)
   }
 
+  const handleCopyClick = (repair: Repair) => {
+    // Create a copy of the repair data excluding dates and photos
+    const copiedRepair: Partial<Repair> = {
+      device_type: repair.device_type,
+      brand: repair.brand,
+      model: repair.model,
+      serial_number: repair.serial_number,
+      repair_number: repair.repair_number,
+      client_name: repair.client_name,
+      client_phone: repair.client_phone,
+      client_email: repair.client_email,
+      issue_description: repair.issue_description,
+      repair_status: 'pending', // Reset to pending for new repair
+      estimated_cost: repair.estimated_cost,
+      actual_cost: 0, // Reset actual cost
+      notes: repair.notes,
+      // Exclude: id, created_at, updated_at, created_by, photos
+    }
+    setRepairToEdit(copiedRepair as Repair)
+    setShowRepairModal(true)
+  }
+
   const handleEditSuccess = () => {
     setShowRepairModal(false)
     setRepairToEdit(null)
@@ -394,6 +416,14 @@ const RepairsList = () => {
                       <option value="cancelled">Отменён</option>
                     </select>
                     <button 
+                      onClick={() => handleCopyClick(repair)}
+                      className="copy-btn"
+                      disabled={!isOnline}
+                      title={!isOnline ? "Копирование недоступно в оффлайн режиме" : "Скопировать ремонт"}
+                    >
+                      📋 Копировать
+                    </button>
+                    <button 
                       onClick={() => handleEditClick(repair)}
                       className="edit-btn"
                       disabled={!isOnline}
@@ -523,6 +553,7 @@ const RepairsList = () => {
       {repairToEdit && (
         <RepairModal 
           repair={repairToEdit}
+          isEditMode={!!repairToEdit.id}
           isOpen={showRepairModal}
           onSuccess={handleEditSuccess} 
           onCancel={handleEditCancel} 
