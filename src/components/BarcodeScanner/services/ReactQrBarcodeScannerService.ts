@@ -17,39 +17,28 @@ type ScanResultUnion = BarcodeScannerResult | string | Result;
 export class ReactQrBarcodeScannerService implements IScannerService {
   private onResult?: (result: IScanResult) => void;
   private onError?: (error: IScannerError) => void;
+  private currentStream?: MediaStream;
+
+  private isMobileDevice(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
+  private isIOSDevice(): boolean {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent);
+  }
 
   async startScanning(): Promise<void> {
     if (this.isSupported()) {
       try {
         const defaultId = getDefaultCameraDeviceId();
-        const constraints: MediaStreamConstraints = defaultId
-          ? {
-              video: {
-                deviceId: { exact: defaultId },
-                width: { ideal: 1920, min: 640 },
-                height: { ideal: 1080, min: 480 },
-                frameRate: { ideal: 30, min: 15 }
-              }
-            }
-          : {
-              video: {
-                facingMode: 'environment',
-                width: { ideal: 1920, min: 640 },
-                height: { ideal: 1080, min: 480 },
-                frameRate: { ideal: 30, min: 15 }
-              }
-            };
-
-        await navigator.mediaDevices.getUserMedia(constraints);
+        const constraints = this.getCameraConstraints(defaultId || undefined);
+        
+        this.currentStream = await navigator.mediaDevices.getUserMedia(constraints);
       } catch (primaryErr) {
         try {
-          await navigator.mediaDevices.getUserMedia({ 
-            video: { 
-              width: { ideal: 1920, min: 640 },
-              height: { ideal: 1080, min: 480 },
-              frameRate: { ideal: 30, min: 15 }
-            } 
-          });
+          // Fallback для мобильных устройств
+          const fallbackConstraints = this.getFallbackConstraints();
+          this.currentStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
         } catch (basicErr) {
           this.handleScanError(basicErr);
         }
@@ -59,8 +48,60 @@ export class ReactQrBarcodeScannerService implements IScannerService {
     }
   }
 
+  private getCameraConstraints(defaultId?: string): MediaStreamConstraints {
+    const isMobile = this.isMobileDevice();
+    const isIOS = this.isIOSDevice();
+    
+    const baseConstraints = {
+      width: isMobile ? { ideal: 1280, min: 320 } : { ideal: 1920, min: 640 },
+      height: isMobile ? { ideal: 720, min: 240 } : { ideal: 1080, min: 480 },
+      frameRate: isMobile ? { ideal: 24, min: 10 } : { ideal: 30, min: 15 }
+    };
+
+    if (defaultId) {
+      return {
+        video: {
+          deviceId: { exact: defaultId },
+          ...baseConstraints
+        }
+      };
+    }
+
+    return {
+      video: {
+        facingMode: 'environment',
+        ...baseConstraints,
+        // Дополнительные настройки для iOS
+        ...(isIOS && {
+          aspectRatio: { ideal: 16/9 },
+          focusMode: 'continuous',
+          whiteBalanceMode: 'continuous',
+          exposureMode: 'continuous'
+        })
+      }
+    };
+  }
+
+  private getFallbackConstraints(): MediaStreamConstraints {
+    const isMobile = this.isMobileDevice();
+    
+    return {
+      video: {
+        facingMode: 'environment',
+        width: isMobile ? { ideal: 640, min: 320 } : { ideal: 1280, min: 640 },
+        height: isMobile ? { ideal: 480, min: 240 } : { ideal: 720, min: 480 },
+        frameRate: isMobile ? { ideal: 15, min: 10 } : { ideal: 24, min: 15 }
+      }
+    };
+  }
+
   stopScanning(): void {
-    // Останавливаем сканирование
+    if (this.currentStream) {
+      this.currentStream.getTracks().forEach(track => {
+        track.stop();
+      });
+      this.currentStream = undefined;
+    }
   }
 
   isSupported(): boolean {
@@ -262,17 +303,9 @@ export class ReactQrBarcodeScannerService implements IScannerService {
 
   renderScanner(width: string, height: string): React.ReactElement {
     const defaultId = getDefaultCameraDeviceId();
+    const isMobile = this.isMobileDevice();
     
-    const videoConstraints = defaultId ? ({ 
-      deviceId: { exact: defaultId },
-      width: { ideal: 1920, min: 640 },
-      height: { ideal: 1080, min: 480 },
-      frameRate: { ideal: 30, min: 15 }
-    } as MediaTrackConstraints) : {
-      width: { ideal: 1920, min: 640 },
-      height: { ideal: 1080, min: 480 },
-      frameRate: { ideal: 30, min: 15 }
-    };
+    const videoConstraints = this.getCameraConstraints(defaultId || undefined).video as MediaTrackConstraints;
     
     const formats = [
       BarcodeStringFormat.CODE_128,
@@ -287,7 +320,7 @@ export class ReactQrBarcodeScannerService implements IScannerService {
     return React.createElement(BarcodeScannerComponent, {
       width,
       height,
-      delay: 100, // Balanced delay for Code 128 detection accuracy
+      delay: isMobile ? 150 : 100, // Больше задержка для мобильных устройств
       facingMode: defaultId ? undefined : 'environment',
       videoConstraints,
       formats,
