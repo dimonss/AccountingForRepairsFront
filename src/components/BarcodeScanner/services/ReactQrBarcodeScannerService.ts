@@ -18,9 +18,26 @@ export class ReactQrBarcodeScannerService implements IScannerService {
   private onResult?: (result: IScanResult) => void;
   private onError?: (error: IScannerError) => void;
   private currentStream?: MediaStream;
+  private resizeHandler?: () => void;
 
   private isMobileDevice(): boolean {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // Более точная детекция мобильных устройств
+    const userAgent = navigator.userAgent;
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    
+    // Дополнительная проверка по размеру экрана
+    const isMobileScreen = window.innerWidth <= 768 || window.innerHeight <= 768;
+    
+    return isMobileUA || isMobileScreen;
+  }
+
+  private isHighResolutionDevice(): boolean {
+    // Детекция устройств с высоким разрешением (iPhone 14 Pro Max и подобные)
+    const isIOS = this.isIOSDevice();
+    const isHighRes = window.devicePixelRatio > 2;
+    const isLargeScreen = window.innerWidth > 400 && window.innerHeight > 800;
+    
+    return isIOS && isHighRes && isLargeScreen;
   }
 
   private isIOSDevice(): boolean {
@@ -28,6 +45,9 @@ export class ReactQrBarcodeScannerService implements IScannerService {
   }
 
   async startScanning(): Promise<void> {
+    // Добавляем обработчик изменения размера окна
+    this.setupResizeHandler();
+    
     if (this.isSupported()) {
       try {
         const defaultId = getDefaultCameraDeviceId();
@@ -38,6 +58,7 @@ export class ReactQrBarcodeScannerService implements IScannerService {
         try {
           // Fallback для мобильных устройств
           const fallbackConstraints = this.getFallbackConstraints();
+          
           this.currentStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
         } catch (basicErr) {
           this.handleScanError(basicErr);
@@ -48,15 +69,62 @@ export class ReactQrBarcodeScannerService implements IScannerService {
     }
   }
 
+  private setupResizeHandler(): void {
+    // Удаляем предыдущий обработчик, если есть
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+    }
+    
+    this.resizeHandler = () => {
+      // Переинициализируем сканер при изменении размера
+      this.restartScanning();
+    };
+    
+    window.addEventListener('resize', this.resizeHandler);
+  }
+
+  private async restartScanning(): Promise<void> {
+    // Останавливаем текущий поток
+    this.stopScanning();
+    
+    // Небольшая задержка для стабилизации
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Перезапускаем сканирование
+    await this.startScanning();
+  }
+
   private getCameraConstraints(defaultId?: string): MediaStreamConstraints {
     const isMobile = this.isMobileDevice();
     const isIOS = this.isIOSDevice();
+    const isHighRes = this.isHighResolutionDevice();
     
-    const baseConstraints = {
-      width: isMobile ? { ideal: 1280, min: 320 } : { ideal: 1920, min: 640 },
-      height: isMobile ? { ideal: 720, min: 240 } : { ideal: 1080, min: 480 },
-      frameRate: isMobile ? { ideal: 24, min: 10 } : { ideal: 30, min: 15 }
-    };
+    // Максимальное разрешение для высокоразрешающих устройств
+    let baseConstraints;
+    
+    if (isHighRes) {
+      // Для iPhone 14 Pro Max и подобных - максимальное разрешение
+      baseConstraints = {
+        width: { ideal: 3840, min: 1920 }, // 4K для лучшего сканирования
+        height: { ideal: 2160, min: 1080 },
+        frameRate: { ideal: 30, min: 24 }
+      };
+    } else if (isMobile) {
+      // Для обычных мобильных устройств - высокое разрешение
+      baseConstraints = {
+        width: { ideal: 1920, min: 1280 },
+        height: { ideal: 1080, min: 720 },
+        frameRate: { ideal: 30, min: 15 }
+      };
+    } else {
+      // Для десктопа - стандартное разрешение
+      baseConstraints = {
+        width: { ideal: 1920, min: 640 },
+        height: { ideal: 1080, min: 480 },
+        frameRate: { ideal: 30, min: 15 }
+      };
+    }
+
 
     if (defaultId) {
       return {
@@ -84,18 +152,50 @@ export class ReactQrBarcodeScannerService implements IScannerService {
 
   private getFallbackConstraints(): MediaStreamConstraints {
     const isMobile = this.isMobileDevice();
+    const isHighRes = this.isHighResolutionDevice();
+    
+    // Fallback с высоким разрешением для мобильных
+    let fallbackConstraints;
+    
+    if (isHighRes) {
+      // Для высокоразрешающих устройств - 2K fallback
+      fallbackConstraints = {
+        width: { ideal: 2560, min: 1920 },
+        height: { ideal: 1440, min: 1080 },
+        frameRate: { ideal: 24, min: 15 }
+      };
+    } else if (isMobile) {
+      // Для обычных мобильных - 1080p fallback
+      fallbackConstraints = {
+        width: { ideal: 1280, min: 640 },
+        height: { ideal: 720, min: 480 },
+        frameRate: { ideal: 24, min: 15 }
+      };
+    } else {
+      // Для десктопа - стандартный fallback
+      fallbackConstraints = {
+        width: { ideal: 1280, min: 640 },
+        height: { ideal: 720, min: 480 },
+        frameRate: { ideal: 24, min: 15 }
+      };
+    }
     
     return {
       video: {
         facingMode: 'environment',
-        width: isMobile ? { ideal: 640, min: 320 } : { ideal: 1280, min: 640 },
-        height: isMobile ? { ideal: 480, min: 240 } : { ideal: 720, min: 480 },
-        frameRate: isMobile ? { ideal: 15, min: 10 } : { ideal: 24, min: 15 }
+        ...fallbackConstraints
       }
     };
   }
 
   stopScanning(): void {
+    // Удаляем обработчик изменения размера
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+      this.resizeHandler = undefined;
+    }
+    
+    // Останавливаем поток камеры
     if (this.currentStream) {
       this.currentStream.getTracks().forEach(track => {
         track.stop();
@@ -168,8 +268,8 @@ export class ReactQrBarcodeScannerService implements IScannerService {
     // Handle common Code 128 issues
     cleaned = cleaned.trim();
     
-    // Additional Code 128 specific cleaning
-    // Remove any non-printable characters that might cause issues
+    // For Code 128, we should preserve dots and other valid characters
+    // Only remove truly problematic characters
     cleaned = cleaned.replace(/[^\x20-\x7E]/g, '');
     
     return cleaned;
@@ -302,6 +402,7 @@ export class ReactQrBarcodeScannerService implements IScannerService {
   }
 
   renderScanner(width: string, height: string): React.ReactElement {
+    // Всегда получаем актуальные настройки
     const defaultId = getDefaultCameraDeviceId();
     const isMobile = this.isMobileDevice();
     
@@ -317,11 +418,14 @@ export class ReactQrBarcodeScannerService implements IScannerService {
       BarcodeStringFormat.QR_CODE
     ];
     
-    return React.createElement(BarcodeScannerComponent, {
+    // Адаптивная задержка в зависимости от устройства
+    const delay = isMobile ? 200 : 100; // Увеличиваем задержку для мобильных
+    
+    const scannerProps = {
       width,
       height,
-      delay: isMobile ? 150 : 100, // Больше задержка для мобильных устройств
-      facingMode: defaultId ? undefined : 'environment',
+      delay,
+      facingMode: (defaultId ? undefined : 'environment') as 'user' | 'environment' | undefined,
       videoConstraints,
       formats,
       onUpdate: (err: unknown, result?: Result) => {
@@ -334,6 +438,8 @@ export class ReactQrBarcodeScannerService implements IScannerService {
       onError: (error: unknown) => {
         this.handleScanError(error);
       }
-    });
+    };
+    
+    return React.createElement(BarcodeScannerComponent, scannerProps);
   }
 }
