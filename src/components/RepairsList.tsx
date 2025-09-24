@@ -12,7 +12,7 @@ import { getDeviceTypeText, getBrandText, getStatusText, getStatusColor } from '
 // Function to capitalize first letter of each word for display
 const capitalizeWords = (text: string): string => {
   if (!text) return '';
-  return text.split(' ').map(word => 
+  return text.split(' ').map(word =>
     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
   ).join(' ');
 }
@@ -20,13 +20,13 @@ const capitalizeWords = (text: string): string => {
 const RepairsList = () => {
   // Connection status
   const { isOnline } = useSelector((state: RootState) => state.connection)
-  
+
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [searchFilter, setSearchFilter] = useState<string>('')
   const [debouncedSearchFilter, setDebouncedSearchFilter] = useState<string>('')
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(() => {
     const saved = localStorage.getItem('repairsCurrentPage')
@@ -36,31 +36,31 @@ const RepairsList = () => {
     const saved = localStorage.getItem('repairsPageSize')
     return saved ? parseInt(saved, 10) : 25
   })
-  
+
   // Debounce search filter
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchFilter(searchFilter.toLowerCase())
     }, 300)
-    
+
     return () => clearTimeout(timer)
   }, [searchFilter])
-  
+
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1)
   }, [debouncedSearchFilter, statusFilter])
-  
+
   // Save page size to localStorage when it changes
   useEffect(() => {
     localStorage.setItem('repairsPageSize', pageSize.toString())
   }, [pageSize])
-  
+
   // Save current page to localStorage when it changes
   useEffect(() => {
     localStorage.setItem('repairsCurrentPage', currentPage.toString())
   }, [currentPage])
-  
+
   // Search params for API
   const searchParams: SearchParams = useMemo(() => ({
     search: debouncedSearchFilter.trim() || undefined,
@@ -70,26 +70,26 @@ const RepairsList = () => {
     sortBy: 'created_at',
     sortOrder: 'DESC'
   }), [debouncedSearchFilter, statusFilter, currentPage, pageSize])
-  
+
   const { data: repairsResponse, error, isLoading } = useGetRepairsQuery(searchParams, {
     // Don't skip queries, let RTK Query handle caching automatically
     // RTK Query will return cached data if available when offline
   })
   const [deleteRepair] = useDeleteRepairMutation()
   const [updateRepairStatus] = useUpdateRepairStatusMutation()
-  
+
   // State to store last successful data for offline fallback
   const [lastSuccessfulData, setLastSuccessfulData] = useState<typeof repairsResponse | null>(null)
-  
+
   // Check if we're showing cached data
 
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [repairToDelete, setRepairToDelete] = useState<Repair | null>(null)
-  
+
   // Edit form state
   const [showRepairModal, setShowRepairModal] = useState(false)
   const [repairToEdit, setRepairToEdit] = useState<Repair | null>(null)
-  
+
   // Photo gallery state
   const [showPhotoGallery, setShowPhotoGallery] = useState(false)
   const [galleryPhotos, setGalleryPhotos] = useState<RepairPhoto[]>([])
@@ -108,12 +108,12 @@ const RepairsList = () => {
     if (repairsResponse && !error) {
       return repairsResponse
     }
-    
+
     // If we're offline and have cached data, use it
     if (!isOnline && lastSuccessfulData) {
       return lastSuccessfulData
     }
-    
+
     return repairsResponse
   }, [repairsResponse, error, isOnline, lastSuccessfulData])
 
@@ -223,7 +223,7 @@ const RepairsList = () => {
 
   const handleConfirmDelete = async () => {
     if (!repairToDelete) return
-    
+
     try {
       await deleteRepair(repairToDelete.id!).unwrap()
       setShowDeleteModal(false)
@@ -243,6 +243,13 @@ const RepairsList = () => {
       await updateRepairStatus({ id, status: newStatus }).unwrap()
     } catch (error) {
       console.error('Failed to update repair status:', error)
+    }
+  }
+
+  // Handler for clicking on field values to populate search
+  const handleFieldClick = (value: string) => {
+    if (value && isOnline) {
+      setSearchFilter(value)
     }
   }
 
@@ -272,7 +279,7 @@ const RepairsList = () => {
               📷
             </button>
           </div>
-          
+
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -288,10 +295,10 @@ const RepairsList = () => {
             <option value="issued">Выдан</option>
             <option value="cancelled">Отменен</option>
           </select>
-          
+
           {(statusFilter !== 'all' || searchFilter) && (
-            <button 
-              onClick={handleClearFilters} 
+            <button
+              onClick={handleClearFilters}
               className="clear-filters-btn"
               disabled={!isOnline}
               title={!isOnline ? "Очистка фильтров недоступна в оффлайн режиме" : ""}
@@ -300,7 +307,7 @@ const RepairsList = () => {
             </button>
           )}
         </div>
-        
+
         <div className="repairs-stats">
           <span>Всего: {pagination?.totalWithoutFilters || pagination?.total || 0}</span>
           {(statusFilter !== 'all' || searchFilter) && pagination?.total !== pagination?.totalWithoutFilters && (
@@ -322,7 +329,7 @@ const RepairsList = () => {
         <div className="error-message">
           <p>Ошибка загрузки ремонтов: {(error as { data?: { error?: string } })?.data?.error || 'Неизвестная ошибка'}</p>
           {currentPage > 1 && (
-            <button 
+            <button
               onClick={handleGoBack}
               className="go-back-btn"
               title="Вернуться на предыдущую страницу"
@@ -351,45 +358,45 @@ const RepairsList = () => {
                 <div key={repair.id} className="repair-card">
                   <div className="repair-header">
                     <h3>{getDeviceTypeText(repair.device_type)} - {getBrandText(repair.brand)} {repair.model}</h3>
-                    <div 
-                      className="status-badge" 
+                    <div
+                      className="status-badge"
                       style={{ backgroundColor: getStatusColor(repair.repair_status) }}
                     >
                       {getStatusText(repair.repair_status)}
                     </div>
                   </div>
-                  
+
                   <div className="repair-details">
-                    <p><strong>Клиент:</strong> {capitalizeWords(repair.client_name)}</p>
-                    <p><strong>Телефон:</strong> {repair.client_phone}</p>
-                    {repair.client_email && <p><strong>Email:</strong> {repair.client_email}</p>}
-                    {repair.serial_number && <p><strong>Серийный номер:</strong> {repair.serial_number}</p>}
-                    {repair.repair_number && <p><strong>Номер ремонта:</strong> {repair.repair_number}</p>}
+                    <p><strong>Клиент:</strong> <span className="clickable-field" onClick={() => handleFieldClick(repair.client_name)} title="Нажмите для поиска">{capitalizeWords(repair.client_name)}</span></p>
+                    <p><strong>Телефон:</strong> <span className="clickable-field" onClick={() => handleFieldClick(repair.client_phone)} title="Нажмите для поиска">{repair.client_phone}</span></p>
+                    {repair.client_email && <p><strong>Email:</strong> <span className="clickable-field" onClick={() => handleFieldClick(repair.client_email!)} title="Нажмите для поиска">{repair.client_email}</span></p>}
+                    {repair.serial_number && <p><strong>Серийный номер:</strong> <span className="clickable-field" onClick={() => handleFieldClick(repair.serial_number!)} title="Нажмите для поиска">{repair.serial_number}</span></p>}
+                    {repair.repair_number && <p><strong>Номер ремонта:</strong> <span className="clickable-field" onClick={() => handleFieldClick(repair.repair_number!)} title="Нажмите для поиска">{repair.repair_number}</span></p>}
                     <p><strong>Проблема:</strong> {repair.issue_description}</p>
                     {repair.estimated_cost && <p><strong>Предварительная стоимость:</strong> {repair.estimated_cost}₽</p>}
                     {repair.actual_cost && <p><strong>Фактическая стоимость:</strong> {repair.actual_cost}₽</p>}
                     {repair.notes && <p><strong>Заметки:</strong> {repair.notes}</p>}
                     <p><strong>Создано:</strong> {new Date(repair.created_at || '').toLocaleDateString('ru-RU')}</p>
-                    
+
                     {repair.photos && repair.photos.length > 0 && (
                       <div className="repair-photos">
                         <p><strong>Фотографии ({repair.photos.length}):</strong></p>
                         <div className="photos-preview">
                           {repair.photos.slice(0, 3).map((photo, index) => (
-                            <div 
-                              key={index} 
+                            <div
+                              key={index}
                               className="photo-thumbnail"
                               onClick={() => handlePhotoClick(repair.photos!, index)}
                             >
-                              <img 
-                                src={photo.url} 
+                              <img
+                                src={photo.url}
                                 alt={photo.caption || photo.filename}
                                 title={photo.caption || photo.filename}
                               />
                             </div>
                           ))}
                           {repair.photos.length > 3 && (
-                            <div 
+                            <div
                               className="more-photos"
                               onClick={() => handlePhotoClick(repair.photos!, 3)}
                             >
@@ -402,8 +409,8 @@ const RepairsList = () => {
                   </div>
 
                   <div className="repair-actions">
-                    <select 
-                      value={repair.repair_status} 
+                    <select
+                      value={repair.repair_status}
                       onChange={(e) => handleStatusChange(repair.id!, e.target.value)}
                       className="status-select"
                       disabled={!isOnline}
@@ -415,7 +422,7 @@ const RepairsList = () => {
                       <option value="issued">Выдан</option>
                       <option value="cancelled">Отменён</option>
                     </select>
-                    <button 
+                    <button
                       onClick={() => handleCopyClick(repair)}
                       className="copy-btn"
                       disabled={!isOnline}
@@ -423,7 +430,7 @@ const RepairsList = () => {
                     >
                       📋 Копировать
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleEditClick(repair)}
                       className="edit-btn"
                       disabled={!isOnline}
@@ -431,7 +438,7 @@ const RepairsList = () => {
                     >
                       Редактировать
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteClick(repair)}
                       className="delete-btn"
                       disabled={!isOnline}
@@ -469,7 +476,7 @@ const RepairsList = () => {
               </select>
             </div>
           </div>
-          
+
           <div className="pagination-controls">
             <button
               onClick={handlePreviousPage}
@@ -478,7 +485,7 @@ const RepairsList = () => {
             >
               ← Предыдущая
             </button>
-            
+
             <div className="page-numbers">
               {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                 let pageNum;
@@ -491,7 +498,7 @@ const RepairsList = () => {
                 } else {
                   pageNum = currentPage - 2 + i;
                 }
-                
+
                 return (
                   <button
                     key={pageNum}
@@ -503,7 +510,7 @@ const RepairsList = () => {
                 );
               })}
             </div>
-            
+
             <button
               onClick={handleNextPage}
               disabled={currentPage === pagination.totalPages}
@@ -515,8 +522,8 @@ const RepairsList = () => {
         </div>
       )}
 
-      <Modal 
-        isOpen={showDeleteModal} 
+      <Modal
+        isOpen={showDeleteModal}
         onClose={handleCancelDelete}
         title="Подтверждение удаления"
       >
@@ -532,13 +539,13 @@ const RepairsList = () => {
               <p><strong>Статус:</strong> {getStatusText(repairToDelete.repair_status)}</p>
             </div>
             <div className="modal-actions">
-              <button 
+              <button
                 className="cancel-btn"
                 onClick={handleCancelDelete}
               >
                 Отмена
               </button>
-              <button 
+              <button
                 className="confirm-delete-btn"
                 onClick={handleConfirmDelete}
               >
@@ -551,12 +558,12 @@ const RepairsList = () => {
 
       {/* Edit Form */}
       {repairToEdit && (
-        <RepairModal 
+        <RepairModal
           repair={repairToEdit}
           isEditMode={!!repairToEdit.id}
           isOpen={showRepairModal}
-          onSuccess={handleEditSuccess} 
-          onCancel={handleEditCancel} 
+          onSuccess={handleEditSuccess}
+          onCancel={handleEditCancel}
         />
       )}
 
