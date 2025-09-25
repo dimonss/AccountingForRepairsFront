@@ -76,8 +76,6 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
     return brandMap[brand] || brand;
   };
 
-
-
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('ru-RU', {
       style: 'currency',
@@ -206,11 +204,11 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
                 <div className="progress-bar">
                   <div 
                     className="progress-fill" 
-                    style={{ width: `${stats.total > 0 ? (stats.completed / stats.total) * 100 : 0}%` }}
+                    style={{ width: `${stats.total > 0 ? (stats.issued / stats.total) * 100 : 0}%` }}
                   ></div>
                 </div>
                 <span className="progress-text">
-                  {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+                  {stats.total > 0 ? Math.round((stats.issued / stats.total) * 100) : 0}%
                 </span>
               </div>
             </div>
