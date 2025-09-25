@@ -555,6 +555,28 @@ body {
   font-weight: 600;
 }
 
+.clickable-field {
+  cursor: pointer;
+  color: #667eea;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+.clickable-field:hover {
+  background-color: rgba(102, 126, 234, 0.1);
+  text-decoration-color: #667eea;
+  transform: translateY(-1px);
+}
+
+.clickable-field:active {
+  background-color: rgba(102, 126, 234, 0.2);
+  transform: translateY(0);
+}
+
 /* Стили для фотографий в списке ремонтов */
 .repair-photos {
   margin-top: 1rem;
@@ -628,7 +650,7 @@ body {
 
 .repair-actions select {
   flex: 1;
-  min-width: 140px;
+  min-width: 100%;
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -831,6 +853,43 @@ body {
 }
 
 .edit-btn:disabled:hover {
+  background-color: #95a5a6;
+  transform: none;
+}
+
+/* Copy button in repair actions */
+.copy-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.copy-btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+}
+
+.copy-btn:active {
+  transform: translateY(0);
+}
+
+.copy-btn:disabled {
+  background-color: #95a5a6;
+  color: #7f8c8d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.copy-btn:disabled:hover {
   background-color: #95a5a6;
   transform: none;
 }
@@ -1080,6 +1139,7 @@ body {
   }
 
   .edit-btn,
+  .copy-btn,
   .delete-btn {
     width: 100%;
     justify-content: center;
@@ -1635,6 +1695,7 @@ body {
   }
 
   .edit-btn,
+  .copy-btn,
   .delete-btn {
     width: 100%;
     padding: 0.75rem;
