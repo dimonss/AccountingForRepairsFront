@@ -56,6 +56,12 @@ export interface DateRange {
 
 export type DateRangeType = keyof DateRange;
 
+export interface ReportsQueryParams {
+  dateRange?: DateRangeType;
+  startDate?: string;
+  endDate?: string;
+}
+
 // Type for error responses
 interface ApiErrorResponse {
   success: false;
@@ -152,28 +158,64 @@ export const reportsApi = createApi({
   baseQuery: baseQueryWithReauth,
   tagTypes: ['Reports'],
   endpoints: (builder) => ({
-    getOverviewStats: builder.query<{ success: boolean; data: OverviewStats }, DateRangeType>({
-      query: (dateRange) => `?dateRange=${dateRange}`,
+    getOverviewStats: builder.query<{ success: boolean; data: OverviewStats }, ReportsQueryParams>({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        if (params.dateRange) queryParams.append('dateRange', params.dateRange);
+        if (params.startDate) queryParams.append('startDate', params.startDate);
+        if (params.endDate) queryParams.append('endDate', params.endDate);
+        return `?${queryParams.toString()}`;
+      },
       providesTags: ['Reports'],
     }),
-    getDeviceStats: builder.query<{ success: boolean; data: DeviceTypeStats[] }, DateRangeType>({
-      query: (dateRange) => `/devices?dateRange=${dateRange}`,
+    getDeviceStats: builder.query<{ success: boolean; data: DeviceTypeStats[] }, ReportsQueryParams>({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        if (params.dateRange) queryParams.append('dateRange', params.dateRange);
+        if (params.startDate) queryParams.append('startDate', params.startDate);
+        if (params.endDate) queryParams.append('endDate', params.endDate);
+        return `/devices?${queryParams.toString()}`;
+      },
       providesTags: ['Reports'],
     }),
-    getBrandStats: builder.query<{ success: boolean; data: BrandStats[] }, DateRangeType>({
-      query: (dateRange) => `/brands?dateRange=${dateRange}`,
+    getBrandStats: builder.query<{ success: boolean; data: BrandStats[] }, ReportsQueryParams>({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        if (params.dateRange) queryParams.append('dateRange', params.dateRange);
+        if (params.startDate) queryParams.append('startDate', params.startDate);
+        if (params.endDate) queryParams.append('endDate', params.endDate);
+        return `/brands?${queryParams.toString()}`;
+      },
       providesTags: ['Reports'],
     }),
-    getMonthlyStats: builder.query<{ success: boolean; data: MonthlyStats[] }, DateRangeType>({
-      query: (dateRange) => `/monthly?dateRange=${dateRange}`,
+    getMonthlyStats: builder.query<{ success: boolean; data: MonthlyStats[] }, ReportsQueryParams>({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        if (params.dateRange) queryParams.append('dateRange', params.dateRange);
+        if (params.startDate) queryParams.append('startDate', params.startDate);
+        if (params.endDate) queryParams.append('endDate', params.endDate);
+        return `/monthly?${queryParams.toString()}`;
+      },
       providesTags: ['Reports'],
     }),
-    getFinancialStats: builder.query<{ success: boolean; data: FinancialStats }, DateRangeType>({
-      query: (dateRange) => `/financial?dateRange=${dateRange}`,
+    getFinancialStats: builder.query<{ success: boolean; data: FinancialStats }, ReportsQueryParams>({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        if (params.dateRange) queryParams.append('dateRange', params.dateRange);
+        if (params.startDate) queryParams.append('startDate', params.startDate);
+        if (params.endDate) queryParams.append('endDate', params.endDate);
+        return `/financial?${queryParams.toString()}`;
+      },
       providesTags: ['Reports'],
     }),
-    getReportsSummary: builder.query<{ success: boolean; data: ReportsSummary }, DateRangeType>({
-      query: (dateRange) => `/summary?dateRange=${dateRange}`,
+    getReportsSummary: builder.query<{ success: boolean; data: ReportsSummary }, ReportsQueryParams>({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        if (params.dateRange) queryParams.append('dateRange', params.dateRange);
+        if (params.startDate) queryParams.append('startDate', params.startDate);
+        if (params.endDate) queryParams.append('endDate', params.endDate);
+        return `/summary?${queryParams.toString()}`;
+      },
       providesTags: ['Reports'],
     }),
   }),

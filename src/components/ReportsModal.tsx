@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useGetReportsSummaryQuery } from '../store/api/reportsApi';
 import Modal from './Modal';
 import './ReportsModal.css';
-import type { DeviceTypeStats, BrandStats, MonthlyStats } from '../store/api/reportsApi';
+import type { DeviceTypeStats, BrandStats, MonthlyStats, ReportsQueryParams } from '../store/api/reportsApi';
 import type { RootState } from '../store';
 
 interface ReportsModalProps {
@@ -14,9 +14,17 @@ interface ReportsModalProps {
 const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'devices' | 'brands' | 'monthly' | 'financial'>('overview');
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [useCustomRange, setUseCustomRange] = useState<boolean>(false);
   const { isOnline } = useSelector((state: RootState) => state.connection);
   
-  const { data: reportsResponse, isLoading, error, refetch } = useGetReportsSummaryQuery(dateRange, {
+  // Build query parameters
+  const queryParams: ReportsQueryParams = useCustomRange 
+    ? { startDate, endDate }
+    : { dateRange };
+  
+  const { data: reportsResponse, isLoading, error } = useGetReportsSummaryQuery(queryParams, {
     skip: !isOpen
   });
 
@@ -83,6 +91,26 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
     }).format(amount);
   };
 
+  // Helper functions for predefined date ranges
+  const setPredefinedRange = (range: 'week' | 'month' | 'quarter' | 'year') => {
+    setDateRange(range);
+    setUseCustomRange(false);
+    setStartDate('');
+    setEndDate('');
+  };
+
+  // Helper function to get current date in YYYY-MM-DD format
+  const getCurrentDate = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+
+  // Helper function to get date N days ago
+  const getDateNDaysAgo = (days: number) => {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    return date.toISOString().split('T')[0];
+  };
+
   if (isLoading) {
     return (
       <Modal isOpen={isOpen} onClose={onClose} title="Отчеты">
@@ -109,25 +137,122 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
       <div className="reports-modal">
         {/* Date Range Selector */}
         <div className="date-range-selector">
-          <label>Период:</label>
-          <select 
-            value={dateRange} 
-            onChange={(e) => {
-              const newDateRange = e.target.value as 'week' | 'month' | 'quarter' | 'year';
-              setDateRange(newDateRange);
-              // Принудительно обновляем данные при изменении периода
-              if (isOpen) {
-                refetch();
-              }
-            }}
-            className="date-range-select"
-            disabled={!isOnline}
-          >
-            <option value="week">Неделя</option>
-            <option value="month">Месяц</option>
-            <option value="quarter">Квартал</option>
-            <option value="year">Год</option>
-          </select>
+          <div className="date-range-header">
+            <label>Период:</label>
+            <div className="date-range-toggle">
+              <button 
+                className={`toggle-btn ${!useCustomRange ? 'active' : ''}`}
+                onClick={() => setUseCustomRange(false)}
+                disabled={!isOnline}
+              >
+                Предустановленные
+              </button>
+              <button 
+                className={`toggle-btn ${useCustomRange ? 'active' : ''}`}
+                onClick={() => setUseCustomRange(true)}
+                disabled={!isOnline}
+              >
+                Произвольный период
+              </button>
+            </div>
+          </div>
+
+          {!useCustomRange ? (
+            <div className="predefined-ranges">
+              <div className="range-buttons">
+                <button 
+                  className={`range-btn ${dateRange === 'week' ? 'active' : ''}`}
+                  onClick={() => setPredefinedRange('week')}
+                  disabled={!isOnline}
+                >
+                  Неделя
+                </button>
+                <button 
+                  className={`range-btn ${dateRange === 'month' ? 'active' : ''}`}
+                  onClick={() => setPredefinedRange('month')}
+                  disabled={!isOnline}
+                >
+                  Месяц
+                </button>
+                <button 
+                  className={`range-btn ${dateRange === 'quarter' ? 'active' : ''}`}
+                  onClick={() => setPredefinedRange('quarter')}
+                  disabled={!isOnline}
+                >
+                  Квартал
+                </button>
+                <button 
+                  className={`range-btn ${dateRange === 'year' ? 'active' : ''}`}
+                  onClick={() => setPredefinedRange('year')}
+                  disabled={!isOnline}
+                >
+                  Год
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="custom-date-range">
+              <div className="date-inputs">
+                <div className="date-input-group">
+                  <label htmlFor="startDate">От:</label>
+                  <input
+                    id="startDate"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    max={endDate || getCurrentDate()}
+                    disabled={!isOnline}
+                    className="date-input"
+                  />
+                </div>
+                <div className="date-input-group">
+                  <label htmlFor="endDate">До:</label>
+                  <input
+                    id="endDate"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    min={startDate}
+                    max={getCurrentDate()}
+                    disabled={!isOnline}
+                    className="date-input"
+                  />
+                </div>
+              </div>
+              <div className="quick-date-buttons">
+                <button 
+                  className="quick-date-btn"
+                  onClick={() => {
+                    setStartDate(getDateNDaysAgo(7));
+                    setEndDate(getCurrentDate());
+                  }}
+                  disabled={!isOnline}
+                >
+                  Последние 7 дней
+                </button>
+                <button 
+                  className="quick-date-btn"
+                  onClick={() => {
+                    setStartDate(getDateNDaysAgo(30));
+                    setEndDate(getCurrentDate());
+                  }}
+                  disabled={!isOnline}
+                >
+                  Последние 30 дней
+                </button>
+                <button 
+                  className="quick-date-btn"
+                  onClick={() => {
+                    setStartDate(getDateNDaysAgo(90));
+                    setEndDate(getCurrentDate());
+                  }}
+                  disabled={!isOnline}
+                >
+                  Последние 3 месяца
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tab Navigation */}
