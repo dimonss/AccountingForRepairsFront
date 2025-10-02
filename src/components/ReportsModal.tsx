@@ -13,16 +13,13 @@ interface ReportsModalProps {
 
 const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'devices' | 'brands' | 'monthly' | 'financial'>('overview');
-  const [dateRange, setDateRange] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [useCustomRange, setUseCustomRange] = useState<boolean>(false);
+  const [activePreset, setActivePreset] = useState<'month' | 'quarter' | 'half-year' | 'year' | 'custom'>('month');
   const { isOnline } = useSelector((state: RootState) => state.connection);
   
-  // Build query parameters
-  const queryParams: ReportsQueryParams = useCustomRange 
-    ? { startDate, endDate }
-    : { dateRange };
+  // Build query parameters - always use custom date range
+  const queryParams: ReportsQueryParams = { startDate, endDate };
   
   const { data: reportsResponse, isLoading, error } = useGetReportsSummaryQuery(queryParams, {
     skip: !isOpen
@@ -91,14 +88,6 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
     }).format(amount);
   };
 
-  // Helper functions for predefined date ranges
-  const setPredefinedRange = (range: 'week' | 'month' | 'quarter' | 'year') => {
-    setDateRange(range);
-    setUseCustomRange(false);
-    setStartDate('');
-    setEndDate('');
-  };
-
   // Helper function to get current date in YYYY-MM-DD format
   const getCurrentDate = () => {
     return new Date().toISOString().split('T')[0];
@@ -109,6 +98,31 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
     const date = new Date();
     date.setDate(date.getDate() - days);
     return date.toISOString().split('T')[0];
+  };
+
+  // Helper function to set date range for quick presets
+  const setDateRange = (startDaysAgo: number, endDaysAgo: number = 0, preset: 'month' | 'quarter' | 'half-year' | 'year' | 'custom' = 'custom') => {
+    setStartDate(getDateNDaysAgo(startDaysAgo));
+    setEndDate(getDateNDaysAgo(endDaysAgo));
+    setActivePreset(preset);
+  };
+
+  // Initialize with current month as default
+  useEffect(() => {
+    if (isOpen && !startDate && !endDate) {
+      setDateRange(30, 0, 'month'); // Last 30 days
+    }
+  }, [isOpen, startDate, endDate]);
+
+  // Handle manual date changes
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStartDate(e.target.value);
+    setActivePreset('custom');
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEndDate(e.target.value);
+    setActivePreset('custom');
   };
 
   if (isLoading) {
@@ -137,61 +151,7 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
       <div className="reports-modal">
         {/* Date Range Selector */}
         <div className="date-range-selector">
-          <div className="date-range-header">
-            <label>Период:</label>
-            <div className="date-range-toggle">
-              <button 
-                className={`toggle-btn ${!useCustomRange ? 'active' : ''}`}
-                onClick={() => setUseCustomRange(false)}
-                disabled={!isOnline}
-              >
-                Предустановленные
-              </button>
-              <button 
-                className={`toggle-btn ${useCustomRange ? 'active' : ''}`}
-                onClick={() => setUseCustomRange(true)}
-                disabled={!isOnline}
-              >
-                Произвольный период
-              </button>
-            </div>
-          </div>
-
-          {!useCustomRange ? (
-            <div className="predefined-ranges">
-              <div className="range-buttons">
-                <button 
-                  className={`range-btn ${dateRange === 'week' ? 'active' : ''}`}
-                  onClick={() => setPredefinedRange('week')}
-                  disabled={!isOnline}
-                >
-                  Неделя
-                </button>
-                <button 
-                  className={`range-btn ${dateRange === 'month' ? 'active' : ''}`}
-                  onClick={() => setPredefinedRange('month')}
-                  disabled={!isOnline}
-                >
-                  Месяц
-                </button>
-                <button 
-                  className={`range-btn ${dateRange === 'quarter' ? 'active' : ''}`}
-                  onClick={() => setPredefinedRange('quarter')}
-                  disabled={!isOnline}
-                >
-                  Квартал
-                </button>
-                <button 
-                  className={`range-btn ${dateRange === 'year' ? 'active' : ''}`}
-                  onClick={() => setPredefinedRange('year')}
-                  disabled={!isOnline}
-                >
-                  Год
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="custom-date-range">
+            <div className="unified-date-range">
               <div className="date-inputs">
                 <div className="date-input-group">
                   <label htmlFor="startDate">От:</label>
@@ -199,7 +159,7 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
                     id="startDate"
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={handleStartDateChange}
                     max={endDate || getCurrentDate()}
                     disabled={!isOnline}
                     className="date-input"
@@ -211,7 +171,7 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
                     id="endDate"
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={handleEndDateChange}
                     min={startDate}
                     max={getCurrentDate()}
                     disabled={!isOnline}
@@ -219,40 +179,38 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) => {
                   />
                 </div>
               </div>
-              <div className="quick-date-buttons">
+              
+              <div className="quick-preset-buttons">
                 <button 
-                  className="quick-date-btn"
-                  onClick={() => {
-                    setStartDate(getDateNDaysAgo(7));
-                    setEndDate(getCurrentDate());
-                  }}
+                  className={`preset-btn ${activePreset === 'month' ? 'active' : ''}`}
+                  onClick={() => setDateRange(30, 0, 'month')}
                   disabled={!isOnline}
                 >
-                  Последние 7 дней
+                  Месяц
                 </button>
                 <button 
-                  className="quick-date-btn"
-                  onClick={() => {
-                    setStartDate(getDateNDaysAgo(30));
-                    setEndDate(getCurrentDate());
-                  }}
+                  className={`preset-btn ${activePreset === 'quarter' ? 'active' : ''}`}
+                  onClick={() => setDateRange(90, 0, 'quarter')}
                   disabled={!isOnline}
                 >
-                  Последние 30 дней
+                  Квартал
                 </button>
                 <button 
-                  className="quick-date-btn"
-                  onClick={() => {
-                    setStartDate(getDateNDaysAgo(90));
-                    setEndDate(getCurrentDate());
-                  }}
+                  className={`preset-btn ${activePreset === 'half-year' ? 'active' : ''}`}
+                  onClick={() => setDateRange(180, 0, 'half-year')}
                   disabled={!isOnline}
                 >
-                  Последние 3 месяца
+                  Полгода
+                </button>
+                <button 
+                  className={`preset-btn ${activePreset === 'year' ? 'active' : ''}`}
+                  onClick={() => setDateRange(365, 0, 'year')}
+                  disabled={!isOnline}
+                >
+                  Год
                 </button>
               </div>
             </div>
-          )}
         </div>
 
         {/* Tab Navigation */}

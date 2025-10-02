@@ -10,18 +10,12 @@
 .date-range-selector {
   margin-bottom: 20px;
   padding: 20px;
-  background: #f8f9fa;
   border-radius: 12px;
   border: 1px solid #e9ecef;
 }
 
 .date-range-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   margin-bottom: 15px;
-  flex-wrap: wrap;
-  gap: 10px;
 }
 
 .date-range-header label {
@@ -31,91 +25,16 @@
   margin: 0;
 }
 
-.date-range-toggle {
+/* Unified Date Range */
+.unified-date-range {
   display: flex;
-  background: #e9ecef;
-  border-radius: 8px;
-  padding: 4px;
-  gap: 2px;
-}
-
-.toggle-btn {
-  padding: 8px 16px;
-  border: none;
-  background: transparent;
-  color: #6c757d;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.toggle-btn.active {
-  background: white;
-  color: #007bff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.toggle-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Predefined Ranges */
-.predefined-ranges {
-  margin-top: 10px;
-}
-
-.range-buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.range-btn {
-  padding: 10px 20px;
-  border: 2px solid #e9ecef;
-  background: white;
-  color: #495057;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  min-width: 80px;
-}
-
-.range-btn:hover {
-  border-color: #007bff;
-  color: #007bff;
-  transform: translateY(-1px);
-}
-
-.range-btn.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
-  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
-}
-
-.range-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background: #f8f9fa;
-  color: #6c757d;
-  border-color: #dee2e6;
-}
-
-/* Custom Date Range */
-.custom-date-range {
-  margin-top: 15px;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .date-inputs {
   display: flex;
   gap: 20px;
-  margin-bottom: 15px;
   flex-wrap: wrap;
 }
 
@@ -156,31 +75,40 @@
   border-color: #dee2e6;
 }
 
-.quick-date-buttons {
+.quick-preset-buttons {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.quick-date-btn {
-  padding: 8px 16px;
-  border: 1px solid #007bff;
-  background: transparent;
-  color: #007bff;
-  border-radius: 6px;
+.preset-btn {
+  padding: 10px 20px;
+  border: 2px solid #e9ecef;
+  background: white;
+  color: #495057;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
+  min-width: 80px;
 }
 
-.quick-date-btn:hover {
+.preset-btn:hover {
+  border-color: #007bff;
+  color: #007bff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+}
+
+.preset-btn.active {
   background: #007bff;
   color: white;
-  transform: translateY(-1px);
+  border-color: #007bff;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
-.quick-date-btn:disabled {
+.preset-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   background: #f8f9fa;
