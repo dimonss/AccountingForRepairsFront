@@ -61,6 +61,11 @@ const RepairsList = () => {
     localStorage.setItem('repairsCurrentPage', currentPage.toString())
   }, [currentPage])
 
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [currentPage])
+
   // Search params for API
   const searchParams: SearchParams = useMemo(() => ({
     search: debouncedSearchFilter.trim() || undefined,
