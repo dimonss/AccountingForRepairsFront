@@ -3,6 +3,7 @@ import type { RepairPhoto } from '../store/api/repairsApi';
 import { useDeleteRepairPhotoMutation } from '../store/api/repairsApi';
 import { CameraCapture } from './CameraCapture';
 import { ConfirmModal } from './ConfirmModal';
+import { PhotoGallery } from './PhotoGallery';
 import { generateUUID, compressImage, formatFileSize, getBase64Size } from '../utils/imageUtils';
 import './PhotoUpload.css';
 
@@ -28,6 +29,8 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [photoToDelete, setPhotoToDelete] = useState<{ index: number; photo: RepairPhoto } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showPhotoGallery, setShowPhotoGallery] = useState(false);
+  const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (files: FileList) => {
@@ -174,6 +177,16 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
     onPhotosChange([...photos, photo]);
   };
 
+  const handlePhotoClick = (index: number) => {
+    setGalleryInitialIndex(index);
+    setShowPhotoGallery(true);
+  };
+
+  const handleClosePhotoGallery = () => {
+    setShowPhotoGallery(false);
+    setGalleryInitialIndex(0);
+  };
+
   const isCameraSupported = () => {
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   };
@@ -247,7 +260,11 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
           {photos.map((photo, index) => (
             <div key={index} className="photo-item">
               <div className="photo-preview">
-                <img src={photo.url} alt={photo.filename} />
+                <img 
+                  src={photo.url} 
+                  alt={photo.filename} 
+                  onClick={() => handlePhotoClick(index)}
+                />
                 <button
                   type="button"
                   onClick={() => handleDeletePhoto(index)}
@@ -289,6 +306,14 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
         onConfirm={confirmDeletePhoto}
         onCancel={cancelDeletePhoto}
         isLoading={isDeleting}
+      />
+
+      {/* Photo Gallery Modal */}
+      <PhotoGallery
+        photos={photos}
+        isOpen={showPhotoGallery}
+        onClose={handleClosePhotoGallery}
+        initialIndex={galleryInitialIndex}
       />
     </div>
   );
