@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react'
 import {useSelector} from 'react-redux'
-import {useCreateRepairMutation, useUpdateRepairMutation, useUploadRepairPhotosMutation} from '../store/api/repairsApi'
+import {useCreateRepairMutation, useUpdateRepairMutation, useUploadRepairPhotosMutation, useGetNextRepairNumberMutation} from '../store/api/repairsApi'
 import type {Repair, RepairPhoto} from '../store/api/repairsApi'
 import type {RootState} from '../store'
 import Modal from './Modal'
@@ -21,6 +21,7 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
     const [createRepair, {isLoading: isCreating}] = useCreateRepairMutation()
     const [updateRepair, {isLoading: isUpdating}] = useUpdateRepairMutation()
     const [uploadPhotos] = useUploadRepairPhotosMutation()
+    const [getNextRepairNumber, {isLoading: isFetchingNextNumber}] = useGetNextRepairNumberMutation()
     const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
     const [scanningField, setScanningField] = useState<'serial_number' | 'repair_number' | null>(null)
     const { isOnline } = useSelector((state: RootState) => state.connection)
@@ -142,6 +143,21 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
     const handleCloseScanner = () => {
         setShowBarcodeScanner(false)
         setScanningField(null)
+    }
+
+    const handleAutoFillRepairNumber = async () => {
+        try {
+            const result = await getNextRepairNumber().unwrap()
+            if (result.success && result.data && result.data.repair_number) {
+                setFormData(prev => ({
+                    ...prev,
+                    repair_number: result.data!.repair_number
+                }))
+            }
+        } catch (error) {
+            console.error('Failed to get next repair number:', error)
+            alert('Не удалось получить следующий номер ремонта. Пожалуйста, попробуйте еще раз.')
+        }
     }
 
     const handlePhotosChange = (photos: RepairPhoto[]) => {
@@ -287,7 +303,8 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                                     className="barcode-scan-btn"
                                     onClick={() => handleOpenScanner('serial_number')}
                                 >
-                                    📷
+                                    <span className="btn-icon">📷</span>
+                                    <span className="btn-text-mobile">Сканировать</span>
                                 </button>
                             </div>
                         </div>
@@ -310,7 +327,8 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                                     className="barcode-scan-btn"
                                     onClick={() => handleOpenScanner('repair_number')}
                                 >
-                                    📷
+                                    <span className="btn-icon">📷</span>
+                                    <span className="btn-text-mobile">Сканировать</span>
                                 </button>
                                 <button
                                     type="button"
@@ -319,8 +337,21 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                                     disabled={!formData.repair_number || formData.repair_number.trim() === ''}
                                     title="Печать штрихкода"
                                 >
-                                    🖨️
+                                    <span className="btn-icon">🖨️</span>
+                                    <span className="btn-text-mobile">Распечатать</span>
                                 </button>
+                                {!isEditMode && (
+                                    <button
+                                        type="button"
+                                        className="auto-fill-btn"
+                                        onClick={handleAutoFillRepairNumber}
+                                        disabled={!isOnline || isFetchingNextNumber}
+                                        title="Автоматически заполнить следующий номер ремонта"
+                                    >
+                                        <span className="btn-icon">{isFetchingNextNumber ? '⏳' : '🔢'}</span>
+                                        <span className="btn-text-mobile">Сгенерировать</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
 

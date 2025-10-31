@@ -231,6 +231,12 @@ export const repairsApi = createApi({
     getRepairHistory: builder.query<ApiResponse<Record<string, unknown>[]>, number>({
       query: (id) => `/${id}/history`,
     }),
+    getNextRepairNumber: builder.mutation<ApiResponse<{ repair_number: string }>, void>({
+      query: () => ({
+        url: '/next-number',
+        method: 'GET',
+      }),
+    }),
     uploadRepairPhotos: builder.mutation<ApiResponse<RepairPhoto[]>, { repairId: number; photos: RepairPhoto[] }>({
       query: ({ repairId, photos }) => ({
         url: `/${repairId}/photos`,
@@ -257,6 +263,7 @@ export const {
   useDeleteRepairMutation,
   useUpdateRepairStatusMutation,
   useGetRepairHistoryQuery,
+  useGetNextRepairNumberMutation,
   useUploadRepairPhotosMutation,
   useDeleteRepairPhotoMutation,
 } = repairsApi; 

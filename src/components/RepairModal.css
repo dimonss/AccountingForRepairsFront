@@ -169,6 +169,24 @@
     padding: 14px;
     font-size: 1rem;
   }
+  
+  .input-with-scanner {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .input-with-scanner input {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  
+  .input-with-scanner .barcode-scan-btn,
+  .input-with-scanner .barcode-print-btn,
+  .input-with-scanner .auto-fill-btn {
+    flex: 1 1 auto;
+    min-width: 100px;
+    width: auto;
+  }
 }
 
 /* Small mobile adjustments */

@@ -281,7 +281,8 @@ const RepairsList = () => {
               title={!isOnline ? "Сканирование недоступно в оффлайн режиме" : "Сканировать штрихкод"}
               disabled={!isOnline}
             >
-              📷
+              <span className="btn-icon">📷</span>
+              <span className="btn-text-mobile">Сканировать</span>
             </button>
           </div>
 
