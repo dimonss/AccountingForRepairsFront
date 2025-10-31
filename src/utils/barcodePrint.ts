@@ -41,7 +41,7 @@ export function printBarcode(repairNumber: string): void {
     // Создаем HTML для печати
     const printContent = `
       <!DOCTYPE html>
-      <html>
+      <html lang="ru">
         <head>
           <title>Печать штрихкода - ${repairNumber}</title>
           <style>
