@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useLoginMutation } from '../store/api/authApi';
 import { setCredentials } from '../store/authSlice';
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 import './LoginForm.css';
 
 interface LoginFormProps {
@@ -41,6 +42,24 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     } catch (err: unknown) {
       let errorMessage = 'Ошибка входа. Попробуйте снова.';
       
+      // Check if user is offline
+      if (!navigator.onLine) {
+        errorMessage = 'Нет подключения к интернету. Проверьте соединение и попробуйте снова.';
+        setError(errorMessage);
+        return;
+      }
+      
+      // Check if it's a network error (FETCH_ERROR) from RTK Query
+      if (err && typeof err === 'object' && 'status' in err) {
+        const fetchError = err as FetchBaseQueryError;
+        if (fetchError.status === 'FETCH_ERROR') {
+          errorMessage = 'Не удалось подключиться к серверу. Проверьте соединение с интернетом и попробуйте снова.';
+          setError(errorMessage);
+          return;
+        }
+      }
+      
+      // Check for API error response with error message
       if (err && typeof err === 'object' && 'data' in err) {
         const errorData = (err as { data: unknown }).data;
         if (errorData && typeof errorData === 'object' && 'error' in errorData) {
