@@ -74,13 +74,13 @@ export function printBarcode(repairNumber: string): void {
             }
             .controls {
               position: fixed;
-              top: 10px;
+              bottom: 10px;
               right: 10px;
               left: 10px;
               display: flex;
               gap: 10px;
               z-index: 1000;
-              justify-content: flex-end;
+              justify-content: center;
               flex-wrap: wrap;
             }
             @media (max-width: 480px) {
