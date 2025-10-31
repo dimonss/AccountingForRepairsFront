@@ -6,6 +6,7 @@ import type {RootState} from '../store'
 import Modal from './Modal'
 import {BarcodeScanner} from './BarcodeScanner'
 import {PhotoUpload} from './PhotoUpload'
+import {printBarcode} from '../utils/barcodePrint'
 import './RepairModal.css'
 
 interface RepairModalProps {
@@ -310,6 +311,15 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                                     onClick={() => handleOpenScanner('repair_number')}
                                 >
                                     📷
+                                </button>
+                                <button
+                                    type="button"
+                                    className="barcode-print-btn"
+                                    onClick={() => printBarcode(formData.repair_number || '')}
+                                    disabled={!formData.repair_number || formData.repair_number.trim() === ''}
+                                    title="Печать штрихкода"
+                                >
+                                    🖨️
                                 </button>
                             </div>
                         </div>
