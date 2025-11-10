@@ -282,7 +282,6 @@ const RepairsList = () => {
               disabled={!isOnline}
             >
               <span className="btn-icon">📷</span>
-              <span className="btn-text-mobile">Сканировать</span>
             </button>
           </div>
 
