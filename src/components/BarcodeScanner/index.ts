@@ -1,6 +1,5 @@
 export { BarcodeScanner } from './BarcodeScanner'
-export { default as BarcodeScannerDefault } from './BarcodeScanner'
-export { ReactQrBarcodeScannerService } from './services/ReactQrBarcodeScannerService'
+export { QuaggaScannerService } from './services/QuaggaScannerService'
 export type { IScannerService, IScanResult, IScannerError } from './interfaces/IScannerService'
 export { useScannerState } from './hooks/useScannerState'
-export type { ScanStatus, ScannerState } from './hooks/useScannerState' 
+export type { ScanStatus, ScannerState } from './hooks/useScannerState'
