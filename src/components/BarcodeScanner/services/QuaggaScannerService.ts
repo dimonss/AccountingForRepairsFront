@@ -5,17 +5,23 @@ import { getDefaultCameraDeviceId } from '../../../utils/cameraPreferences';
 
 /**
  * Сервис сканирования на базе @ericblade/quagga2.
- * Quagga2 специализируется на 1D штрихкодах (Code 128, EAN и пр.) и
- * показывает значительно лучший результат детекции реальных этикеток,
- * чем ZXing/react-qr-barcode-scanner.
+ *
+ * Проблема NaN в Quagga2:
+ * checkImageConstraints() вызывается при каждом кадре. Если в момент
+ * первого вызова видео ещё не стартовало, getWidth()/getHeight() = 0
+ * → calculatePatchSize получает imgSize {x:0, y:0}
+ * → _computeDivisors([0]) = [] → common=[] → patchSize.x = undefined → NaN.
+ *
+ * Решение: перехватываем ошибку в onProcessed и игнорируем "Image dimensions"
+ * пока видео не готово (они не fatal — поток продолжает работать).
  */
 export class QuaggaScannerService implements IScannerService {
   private onResult?: (result: IScanResult) => void;
   private onError?: (error: IScannerError) => void;
   private isRunning = false;
-  private containerId = 'quagga-scanner-container';
+  private readonly containerId = 'quagga-scanner-container';
 
-  // --- IScannerService ---
+  // ── IScannerService ──────────────────────────────────────────────
 
   isSupported(): boolean {
     return (
@@ -38,31 +44,29 @@ export class QuaggaScannerService implements IScannerService {
   }
 
   async startScanning(): Promise<void> {
-    // Quagga инициализируется после того, как DOM-элемент появился.
-    // Реальная инициализация происходит в initQuagga(), которая вызывается
-    // из renderScanner() при монтировании компонента.
+    // Реальный запуск — в initQuagga() после монтирования контейнера.
   }
 
   stopScanning(): void {
-    if (this.isRunning) {
-      try {
-        Quagga.offDetected(this.handleDetected);
-        Quagga.stop();
-      } catch {
-        // Игнорируем ошибки при остановке
-      }
-      this.isRunning = false;
+    if (!this.isRunning) return;
+    try {
+      Quagga.offDetected(this.handleDetected);
+      Quagga.offProcessed(this.handleProcessed);
+      Quagga.stop();
+    } catch {
+      // Игнорируем ошибки при остановке
     }
+    this.isRunning = false;
   }
 
-  /**
-   * Рендерим div-контейнер; Quagga2 сам вставит в него <video> и <canvas>.
-   * Инициализацию откладываем через setTimeout, чтобы DOM успел отрисоваться.
-   */
   renderScanner(width: string, height: string): React.ReactElement {
-    // Запускаем Quagga с небольшой задержкой, давая React время вставить
-    // контейнер в DOM.
-    setTimeout(() => this.initQuagga(), 100);
+    this.injectContainerStyles();
+
+    // Два rAF: первый — после paint, второй — после следующего layout.
+    // Гарантирует что контейнер в DOM перед init.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => this.initQuagga());
+    });
 
     return React.createElement('div', {
       id: this.containerId,
@@ -72,32 +76,57 @@ export class QuaggaScannerService implements IScannerService {
         position: 'relative',
         overflow: 'hidden',
         background: '#000',
+        borderRadius: '8px',
       },
     });
   }
 
-  // --- Внутренние методы ---
+  // ── Внутренние методы ────────────────────────────────────────────
+
+  private injectContainerStyles(): void {
+    const styleId = 'quagga-scanner-styles';
+    if (document.getElementById(styleId)) return;
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    // Quagga вставляет <video> и <canvas> с абсолютными пиксельными
+    // размерами равными разрешению камеры — ограничиваем их контейнером.
+    style.textContent = `
+      #${this.containerId} { display: block; }
+      #${this.containerId} video,
+      #${this.containerId} canvas {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+      }
+      #${this.containerId} canvas.drawingBuffer {
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
 
   private async initQuagga(): Promise<void> {
     const container = document.getElementById(this.containerId);
     if (!container) return;
 
-    // Если уже запущен — перезапустим
     if (this.isRunning) {
       this.stopScanning();
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 150));
     }
 
     const defaultDeviceId = getDefaultCameraDeviceId();
-    const isMobile = this.isMobileDevice();
 
+    // Передаём constraints без width/height — браузер сам выберет
+    // нативное разрешение камеры (всегда корректное целое число).
+    // Явные числа иногда трактуются как exact-constraints и фейлятся;
+    // {ideal} объекты приводят к NaN до получения первого кадра.
     const constraints: MediaTrackConstraints = defaultDeviceId
       ? { deviceId: { exact: defaultDeviceId } }
-      : {
-          facingMode: 'environment',
-          width: { ideal: isMobile ? 1920 : 1280 },
-          height: { ideal: isMobile ? 1080 : 720 },
-        };
+      : { facingMode: 'environment' };
 
     try {
       await new Promise<void>((resolve, reject) => {
@@ -107,27 +136,20 @@ export class QuaggaScannerService implements IScannerService {
               type: 'LiveStream',
               target: container,
               constraints,
-              area: {
-                // Нацеливаем детектор на центральные 60% кадра, где
-                // пользователь держит штрихкод.
-                top: '20%',
-                right: '10%',
-                bottom: '20%',
-                left: '10%',
-              },
             },
             locator: {
-              patchSize: 'medium', // 'x-large' замедляет, 'small' теряет плотные коды
-              halfSample: true,
+              patchSize: 'medium',
+              // halfSample: false гарантирует что полное разрешение
+              // передаётся в calculatePatchSize без деления пополам.
+              halfSample: false,
             },
-            numOfWorkers: typeof navigator !== 'undefined' &&
-              navigator.hardwareConcurrency
-              ? Math.min(navigator.hardwareConcurrency, 4)
-              : 2,
-            frequency: isMobile ? 10 : 15, // кадров в секунду для декодирования
+            // numOfWorkers: 0 — однопоточный режим (WebWorker не используется).
+            // Наиболее предсказуемое поведение; исключает race-conditions
+            // между worker-потоком и основным потоком при старте.
+            numOfWorkers: 0,
+            frequency: 10,
             decoder: {
               readers: [
-                // Code 128 первым — он самый приоритетный
                 'code_128_reader',
                 'code_39_reader',
                 'ean_reader',
@@ -139,15 +161,16 @@ export class QuaggaScannerService implements IScannerService {
             locate: true,
           },
           err => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve();
-            }
+            if (err) reject(err);
+            else resolve();
           }
         );
       });
 
+      // Перехватываем "Image dimensions" ошибку в onProcessed.
+      // Она возникает только в первые кадры пока видео прогревается,
+      // и не является фатальной — поток продолжает работу.
+      Quagga.onProcessed(this.handleProcessed);
       Quagga.onDetected(this.handleDetected);
       Quagga.start();
       this.isRunning = true;
@@ -157,52 +180,49 @@ export class QuaggaScannerService implements IScannerService {
   }
 
   /**
-   * Callback Quagga при обнаружении штрихкода.
-   * Используем стрелочную функцию, чтобы `this` был доступен при передаче
-   * в Quagga.offDetected().
+   * Обработчик каждого обработанного кадра.
+   * Нужен чтобы перехватить и подавить ошибку "Image dimensions"
+   * которую Quagga бросает в первые кадры (videoWidth ещё не готов).
    */
-  private handleDetected = (data: { codeResult: { code: string | null; format: string } }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private handleProcessed = (_result: any) => {
+    // Намеренно пустой — сам факт наличия обработчика заставляет Quagga
+    // не propagation'ить ошибки checkImageConstraints наружу.
+    // Quagga внутри оборачивает processFrame в try/catch и вызывает
+    // onProcessed; без этого обработчика ошибка всплывает как unhandled.
+  };
+
+  private handleDetected = (data: {
+    codeResult: { code: string | null; format: string };
+  }) => {
     const raw = data?.codeResult?.code;
     if (!raw) return;
 
-    // Дополнительная валидация: Quagga иногда возвращает ложные срабатывания.
-    // Принимаем только результаты, прошедшие базовую проверку.
     const text = this.cleanText(raw);
     if (!text) return;
 
     const format = (data.codeResult.format || 'CODE_128').toUpperCase();
 
-    const scanResult: IScanResult = {
+    this.onResult?.({
       text,
       format,
       timestamp: new Date(),
-    };
-
-    if (this.onResult) {
-      this.onResult(scanResult);
-    }
+    });
   };
 
-  /**
-   * Очищаем текст от мусорных символов, сохраняя точки и буквенно-цифровые
-   * символы, которые встречаются в реальных Code 128 (например, "9011401C..0913766550").
-   */
   private cleanText(raw: string): string {
     if (!raw) return '';
-    // Оставляем все печатаемые ASCII символы (0x20–0x7E)
+    // Сохраняем все печатаемые ASCII: буквы, цифры, точки и пр.
     return raw.replace(/[^\x20-\x7E]/g, '').trim();
   }
 
   private dispatchError(error: unknown): void {
     if (!this.onError) return;
-
-    const message = this.resolveErrorMessage(error);
-    const scannerError: IScannerError = {
+    this.onError({
       code: 'QUAGGA_ERROR',
-      message,
+      message: this.resolveErrorMessage(error),
       isRecoverable: true,
-    };
-    this.onError(scannerError);
+    });
   }
 
   private resolveErrorMessage(error: unknown): string {
@@ -214,16 +234,18 @@ export class QuaggaScannerService implements IScannerService {
       if (msg.includes('NotFoundError')) return 'Камера не найдена';
       if (msg.includes('NotReadableError'))
         return 'Камера заблокирована другим приложением';
+      // Ошибки размеров изображения — временные, не показываем пользователю
+      if (msg.includes('Image dimensions')) return '';
       return msg;
     }
     return 'Ошибка инициализации сканера';
   }
 
   private isMobileDevice(): boolean {
-    const ua = navigator.userAgent;
     return (
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) ||
-      window.innerWidth <= 768
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      ) || window.innerWidth <= 768
     );
   }
 }
