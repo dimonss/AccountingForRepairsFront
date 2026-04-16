@@ -1,5 +1,5 @@
 export { BarcodeScanner } from './BarcodeScanner'
-export { QuaggaScannerService } from './services/QuaggaScannerService'
+export { Html5QrcodeScannerService } from './services/Html5QrcodeScannerService'
 export type { IScannerService, IScanResult, IScannerError } from './interfaces/IScannerService'
 export { useScannerState } from './hooks/useScannerState'
 export type { ScanStatus, ScannerState } from './hooks/useScannerState'

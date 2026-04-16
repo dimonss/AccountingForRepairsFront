@@ -10,9 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ericblade/quagga2": "^1.12.1",
     "@reduxjs/toolkit": "^2.8.2",
     "@types/jsbarcode": "^3.11.4",
+    "html5-qrcode": "^2.3.8",
     "jsbarcode": "^3.12.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

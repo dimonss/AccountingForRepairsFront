@@ -5,7 +5,7 @@ import { useScannerState } from './hooks/useScannerState'
 import { ScannerInstructions } from './components/ScannerInstructions'
 import { ScannerError } from './components/ScannerError'
 import { ScannerViewport } from './components/ScannerViewport'
-import { QuaggaScannerService } from './services/QuaggaScannerService'
+import { Html5QrcodeScannerService } from './services/Html5QrcodeScannerService'
 import type { IScannerService } from './interfaces/IScannerService'
 
 interface BarcodeScannerProps {
@@ -19,7 +19,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
   isOpen,
   onClose,
   onScan,
-  scannerService = new QuaggaScannerService()
+  scannerService = new Html5QrcodeScannerService()
 }) => {
   const {
     state,
