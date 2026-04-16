@@ -63,22 +63,27 @@ export class Html5QrcodeScannerService implements IScannerService {
       });
 
       const defaultDeviceId = getDefaultCameraDeviceId();
-      // const isMobile = this.isMobileDevice();
+
+      // Обязательно помещаем выбор камеры внутрь videoConstraints, 
+      // иначе html5-qrcode затрет выбор камеры при использовании width/height
+      const videoConstraints: MediaTrackConstraints = {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+      };
+
+      if (defaultDeviceId) {
+        videoConstraints.deviceId = { exact: defaultDeviceId };
+      } else {
+        videoConstraints.facingMode = 'environment';
+      }
 
       const config: Html5QrcodeCameraScanConfig = {
         fps: 10,
-        // Мы НЕ передаем qrbox. 
-        // 1. ZXing будет сканировать весь кадр, что полезно для длинных штрихкодов.
-        // 2. Библиотека перестанет рисовать свой квадратный оверлей (shaded region).
         aspectRatio: 1.7777778,
-        videoConstraints: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        }
+        videoConstraints
       };
 
-      // html5-qrcode гарантированно выбирает конкретную камеру только
-      // когда мы передаем её ID напрямую как строку первым аргументом.
+      // Первый аргумент для обратной совместимости API
       const cameraConfig = defaultDeviceId
         ? defaultDeviceId
         : { facingMode: 'environment' };
