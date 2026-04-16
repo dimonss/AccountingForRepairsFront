@@ -77,8 +77,10 @@ export class Html5QrcodeScannerService implements IScannerService {
         }
       };
 
+      // html5-qrcode гарантированно выбирает конкретную камеру только
+      // когда мы передаем её ID напрямую как строку первым аргументом.
       const cameraConfig = defaultDeviceId
-        ? { deviceId: { exact: defaultDeviceId } }
+        ? defaultDeviceId
         : { facingMode: 'environment' };
 
       await this.html5QrCode.start(
