@@ -63,13 +63,18 @@ export class Html5QrcodeScannerService implements IScannerService {
       });
 
       const defaultDeviceId = getDefaultCameraDeviceId();
-      const isMobile = this.isMobileDevice();
+      // const isMobile = this.isMobileDevice();
 
       const config: Html5QrcodeCameraScanConfig = {
         fps: 10,
-        // Ограничиваем область сканирования, чтобы рамка отсекала фон
-        qrbox: isMobile ? { width: 300, height: 150 } : { width: 500, height: 200 },
-        aspectRatio: isMobile ? 1.7777778 : 1.333334,
+        // Мы НЕ передаем qrbox. 
+        // 1. ZXing будет сканировать весь кадр, что полезно для длинных штрихкодов.
+        // 2. Библиотека перестанет рисовать свой квадратный оверлей (shaded region).
+        aspectRatio: 1.7777778,
+        videoConstraints: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
       };
 
       const cameraConfig = defaultDeviceId
@@ -188,11 +193,11 @@ export class Html5QrcodeScannerService implements IScannerService {
     return 'Ошибка инициализации сканера';
   }
 
-  private isMobileDevice(): boolean {
-    return (
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      ) || window.innerWidth <= 768
-    );
-  }
+  // private isMobileDevice(): boolean {
+  //   return (
+  //     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+  //       navigator.userAgent
+  //     ) || window.innerWidth <= 768
+  //   );
+  // }
 }
