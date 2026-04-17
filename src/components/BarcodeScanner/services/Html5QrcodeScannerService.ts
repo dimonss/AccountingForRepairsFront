@@ -108,18 +108,24 @@ export class Html5QrcodeScannerService implements IScannerService {
 
   stopScanning(): void {
     if (!this.isRunning || !this.html5QrCode) return;
+    
+    // Сохраняем ссылку на текущий инстанс и сразу очищаем переменные состояния,
+    // чтобы предотвратить конфликты при быстром открытии/закрытии сканера.
+    const currentScanner = this.html5QrCode;
+    this.html5QrCode = null;
+    this.isRunning = false;
+
     try {
-      // Игнорируем Promise, так как IScannerService требует синхронный stopScanning
-      this.html5QrCode.stop().then(() => {
-        this.html5QrCode?.clear();
-        this.html5QrCode = null;
-      }).catch(() => {
-        // Игнорируем ошибки при остановке
-      });
+      currentScanner.stop()
+        .catch(() => {})
+        .finally(() => {
+          try {
+            currentScanner.clear();
+          } catch {}
+        });
     } catch {
        // Catch sync errors
     }
-    this.isRunning = false;
   }
 
   renderScanner(width: string, height: string): React.ReactElement {

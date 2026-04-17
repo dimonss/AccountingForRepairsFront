@@ -38,6 +38,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
       startScanning()
       scannerServiceRef.current.setCallbacks(handleScanResult, handleScanError)
     } else {
+      scannerServiceRef.current.stopScanning()
       stopScanning()
       reset()
     }
@@ -45,6 +46,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
 
   useEffect(() => {
     if (state.scanStatus === 'found' && state.lastResult) {
+      scannerServiceRef.current.stopScanning()
       onScan(state.lastResult.text)
       // Небольшая задержка чтобы пользователь увидел успех
       setTimeout(() => {
@@ -54,6 +56,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
   }, [state.scanStatus, state.lastResult, onScan, onClose])
 
   const handleClose = () => {
+    scannerServiceRef.current.stopScanning()
     stopScanning()
     reset()
     onClose()
