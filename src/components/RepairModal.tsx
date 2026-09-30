@@ -116,11 +116,15 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const {name, value} = e.target
+        let finalValue: any = value;
+        if (name === 'estimated_cost' || name === 'actual_cost') {
+            finalValue = parseFloat(value) || 0;
+        } else if (name === 'client_phone') {
+            finalValue = value.replace(/[\s\u200B-\u200D\uFEFF\u202A-\u202E]/g, '');
+        }
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'estimated_cost' || name === 'actual_cost'
-                ? parseFloat(value) || 0
-                : value
+            [name]: finalValue
         }))
     }
 
@@ -182,10 +186,11 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
         try {
             const {photos, ...repairData} = formData
 
-            // Convert only client_name to lowercase for consistent storage
+            // Convert client_name to lowercase and remove spaces from client_phone for consistent storage
             const normalizedRepairData = {
                 ...repairData,
-                client_name: toLowerCase(repairData.client_name)
+                client_name: toLowerCase(repairData.client_name),
+                client_phone: repairData.client_phone ? repairData.client_phone.replace(/[\s\u200B-\u200D\uFEFF\u202A-\u202E]/g, '') : ''
             }
 
             if (isEditMode && repair?.id) {

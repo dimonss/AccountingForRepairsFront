@@ -138,7 +138,7 @@ const RepairsList = () => {
   }
 
   const handleBarcodeScanned = (scannedCode: string) => {
-    setSearchFilter(scannedCode)
+    setSearchFilter(scannedCode.replace(/[\s\u200B-\u200D\uFEFF\u202A-\u202E]/g, ''))
     setShowBarcodeScanner(false)
   }
 
@@ -254,11 +254,15 @@ const RepairsList = () => {
   // Handler for clicking on field values to populate search
   const handleFieldClick = (value: string) => {
     if (value && isOnline) {
-      setSearchFilter(value)
+      setSearchFilter(value.replace(/[\s\u200B-\u200D\uFEFF\u202A-\u202E]/g, ''))
     }
   }
 
-
+  // Handler for search filter input change (removes all spaces & invisible characters upon input)
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleaned = e.target.value.replace(/[\s\u200B-\u200D\uFEFF\u202A-\u202E]/g, '')
+    setSearchFilter(cleaned)
+  }
 
   return (
     <div className="repairs-list">
@@ -269,7 +273,7 @@ const RepairsList = () => {
               type="text"
               placeholder={isOnline ? "Имя, телефон, номер ремонта, серийный номер, email..." : "Поиск недоступен в оффлайн режиме"}
               value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
+              onChange={handleSearchChange}
               className="search-input"
               disabled={!isOnline}
               title={!isOnline ? "Поиск недоступен в оффлайн режиме" : ""}
