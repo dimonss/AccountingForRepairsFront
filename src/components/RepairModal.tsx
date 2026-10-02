@@ -120,7 +120,8 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
         if (name === 'estimated_cost' || name === 'actual_cost') {
             finalValue = parseFloat(value) || 0;
         } else if (name === 'client_phone') {
-            finalValue = value.replace(/[\s\u200B-\u200D\uFEFF\u202A-\u202E]/g, '');
+            finalValue = value.replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '');
+            e.target.value = finalValue;
         }
         setFormData(prev => ({
             ...prev,
@@ -382,6 +383,26 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                                 name="client_phone"
                                 value={formData.client_phone}
                                 onChange={handleChange}
+                                onKeyDown={(e) => {
+                                    if (e.key === ' ' || e.code === 'Space') {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                onPaste={(e) => {
+                                    e.preventDefault();
+                                    const text = e.clipboardData.getData('text');
+                                    const cleaned = text.replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '');
+                                    const target = e.currentTarget;
+                                    const start = target.selectionStart || 0;
+                                    const end = target.selectionEnd || 0;
+                                    const currentVal = formData.client_phone || '';
+                                    const newVal = (currentVal.slice(0, start) + cleaned + currentVal.slice(end)).replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '');
+                                    target.value = newVal;
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        client_phone: newVal
+                                    }));
+                                }}
                                 required
                             />
                         </div>

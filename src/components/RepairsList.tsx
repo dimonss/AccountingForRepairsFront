@@ -260,7 +260,8 @@ const RepairsList = () => {
 
   // Handler for search filter input change (removes all spaces & invisible characters upon input)
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cleaned = e.target.value.replace(/[\s\u200B-\u200D\uFEFF\u202A-\u202E]/g, '')
+    const cleaned = e.target.value.replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '')
+    e.target.value = cleaned
     setSearchFilter(cleaned)
   }
 
@@ -274,6 +275,23 @@ const RepairsList = () => {
               placeholder={isOnline ? "Имя, телефон, номер ремонта, серийный номер, email..." : "Поиск недоступен в оффлайн режиме"}
               value={searchFilter}
               onChange={handleSearchChange}
+              onKeyDown={(e) => {
+                if (e.key === ' ' || e.code === 'Space') {
+                  e.preventDefault()
+                }
+              }}
+              onPaste={(e) => {
+                e.preventDefault()
+                const text = e.clipboardData.getData('text')
+                const cleaned = text.replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '')
+                const target = e.currentTarget
+                const start = target.selectionStart || 0
+                const end = target.selectionEnd || 0
+                const currentVal = searchFilter
+                const newVal = (currentVal.slice(0, start) + cleaned + currentVal.slice(end)).replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '')
+                target.value = newVal
+                setSearchFilter(newVal)
+              }}
               className="search-input"
               disabled={!isOnline}
               title={!isOnline ? "Поиск недоступен в оффлайн режиме" : ""}
