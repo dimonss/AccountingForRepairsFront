@@ -261,7 +261,6 @@ const RepairsList = () => {
   // Handler for search filter input change (removes all spaces & invisible characters upon input)
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const cleaned = e.target.value.replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '')
-    e.target.value = cleaned
     setSearchFilter(cleaned)
   }
 
@@ -280,17 +279,30 @@ const RepairsList = () => {
                   e.preventDefault()
                 }
               }}
+              onBeforeInput={(e: React.FormEvent<HTMLInputElement>) => {
+                const inputEvent = e.nativeEvent as InputEvent
+                if (inputEvent.data && /\s/.test(inputEvent.data)) {
+                  e.preventDefault()
+                  return
+                }
+                if (inputEvent.inputType === 'insertReplacementText' && (inputEvent.data === '.' || inputEvent.data === '. ')) {
+                  e.preventDefault()
+                  return
+                }
+              }}
               onPaste={(e) => {
                 e.preventDefault()
                 const text = e.clipboardData.getData('text')
                 const cleaned = text.replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '')
                 const target = e.currentTarget
-                const start = target.selectionStart || 0
-                const end = target.selectionEnd || 0
-                const currentVal = searchFilter
-                const newVal = (currentVal.slice(0, start) + cleaned + currentVal.slice(end)).replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '')
-                target.value = newVal
+                const start = target.selectionStart ?? 0
+                const end = target.selectionEnd ?? 0
+                const currentVal = searchFilter || ''
+                const newVal = currentVal.slice(0, start) + cleaned + currentVal.slice(end)
                 setSearchFilter(newVal)
+                requestAnimationFrame(() => {
+                  target.setSelectionRange(start + cleaned.length, start + cleaned.length)
+                })
               }}
               className="search-input"
               disabled={!isOnline}

@@ -120,8 +120,7 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
         if (name === 'estimated_cost' || name === 'actual_cost') {
             finalValue = parseFloat(value) || 0;
         } else if (name === 'client_phone') {
-            finalValue = value.replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '');
-            e.target.value = finalValue;
+            finalValue = value.replace(/[^0-9+]/g, '');
         }
         setFormData(prev => ({
             ...prev,
@@ -384,24 +383,38 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                                 value={formData.client_phone}
                                 onChange={handleChange}
                                 onKeyDown={(e) => {
-                                    if (e.key === ' ' || e.code === 'Space') {
+                                    if (e.key === ' ' || e.code === 'Space' || e.key === '.') {
                                         e.preventDefault();
+                                    }
+                                }}
+                                onBeforeInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                    const inputEvent = e.nativeEvent as InputEvent;
+                                    // Block spaces, macOS double-space dot replacement, and any non-phone character
+                                    if (inputEvent.data && (!/^[0-9+]+$/.test(inputEvent.data) || /\s|\./.test(inputEvent.data))) {
+                                        e.preventDefault();
+                                        return;
+                                    }
+                                    if (inputEvent.inputType === 'insertReplacementText') {
+                                        e.preventDefault();
+                                        return;
                                     }
                                 }}
                                 onPaste={(e) => {
                                     e.preventDefault();
                                     const text = e.clipboardData.getData('text');
-                                    const cleaned = text.replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '');
+                                    const cleaned = text.replace(/[^0-9+]/g, '');
                                     const target = e.currentTarget;
-                                    const start = target.selectionStart || 0;
-                                    const end = target.selectionEnd || 0;
+                                    const start = target.selectionStart ?? 0;
+                                    const end = target.selectionEnd ?? 0;
                                     const currentVal = formData.client_phone || '';
-                                    const newVal = (currentVal.slice(0, start) + cleaned + currentVal.slice(end)).replace(/[\s\u200B-\u200F\uFEFF\u202A-\u202E]/g, '');
-                                    target.value = newVal;
+                                    const newVal = currentVal.slice(0, start) + cleaned + currentVal.slice(end);
                                     setFormData(prev => ({
                                         ...prev,
                                         client_phone: newVal
                                     }));
+                                    requestAnimationFrame(() => {
+                                        target.setSelectionRange(start + cleaned.length, start + cleaned.length);
+                                    });
                                 }}
                                 required
                             />
