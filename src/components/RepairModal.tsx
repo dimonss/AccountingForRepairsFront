@@ -35,6 +35,18 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
         return text.toLowerCase();
     }
 
+    // Function to normalize phone input: ensure only digits and a single leading '+'
+    const normalizePhoneInput = (val: string): string => {
+        let cleaned = val.replace(/[^0-9+]/g, '');
+        if (!cleaned) return '';
+        if (!cleaned.startsWith('+')) {
+            cleaned = '+' + cleaned.replace(/\+/g, '');
+        } else {
+            cleaned = '+' + cleaned.slice(1).replace(/^\++/, '');
+        }
+        return cleaned;
+    }
+
     const [formData, setFormData] = useState<Partial<Repair>>({
         device_type: '',
         brand: '',
@@ -42,7 +54,7 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
         serial_number: '',
         repair_number: '',
         client_name: '',
-        client_phone: '',
+        client_phone: '+',
         client_email: '',
         issue_description: '',
         repair_status: 'pending',
@@ -64,7 +76,7 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                     serial_number: repair.serial_number || '',
                     repair_number: repair.repair_number || '',
                     client_name: repair.client_name || '',
-                    client_phone: repair.client_phone || '',
+                    client_phone: repair.client_phone || '+',
                     client_email: repair.client_email || '',
                     issue_description: repair.issue_description || '',
                     repair_status: repair.repair_status || 'pending',
@@ -83,7 +95,7 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                     serial_number: repairData.serial_number || '',
                     repair_number: repairData.repair_number || '',
                     client_name: repairData.client_name || '',
-                    client_phone: repairData.client_phone || '',
+                    client_phone: repairData.client_phone || '+',
                     client_email: repairData.client_email || '',
                     issue_description: repairData.issue_description || '',
                     repair_status: 'pending', // Always start with pending for new repairs
@@ -102,7 +114,7 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                 serial_number: '',
                 repair_number: '',
                 client_name: '',
-                client_phone: '',
+                client_phone: '+',
                 client_email: '',
                 issue_description: '',
                 repair_status: 'pending',
@@ -120,7 +132,7 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
         if (name === 'estimated_cost' || name === 'actual_cost') {
             finalValue = parseFloat(value) || 0;
         } else if (name === 'client_phone') {
-            finalValue = value.replace(/[^0-9+]/g, '');
+            finalValue = normalizePhoneInput(value);
         }
         setFormData(prev => ({
             ...prev,
@@ -183,14 +195,21 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
             return
         }
 
+        // Validate client_phone: must have digits beyond just '+'
+        const cleanedPhone = normalizePhoneInput(formData.client_phone || '');
+        if (!cleanedPhone || cleanedPhone === '+') {
+            alert('Пожалуйста, укажите корректный номер телефона клиента.');
+            return;
+        }
+
         try {
             const {photos, ...repairData} = formData
 
-            // Convert client_name to lowercase and remove spaces from client_phone for consistent storage
+            // Convert client_name to lowercase and ensure client_phone is normalized
             const normalizedRepairData = {
                 ...repairData,
                 client_name: toLowerCase(repairData.client_name),
-                client_phone: repairData.client_phone ? repairData.client_phone.replace(/[\s\u200B-\u200D\uFEFF\u202A-\u202E]/g, '') : ''
+                client_phone: cleanedPhone
             }
 
             if (isEditMode && repair?.id) {
@@ -399,6 +418,14 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                                         return;
                                     }
                                 }}
+                                onFocus={() => {
+                                    if (!formData.client_phone) {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            client_phone: '+'
+                                        }));
+                                    }
+                                }}
                                 onPaste={(e) => {
                                     e.preventDefault();
                                     const text = e.clipboardData.getData('text');
@@ -407,13 +434,15 @@ const RepairModal = ({repair, isEditMode: explicitEditMode, isOpen, onSuccess, o
                                     const start = target.selectionStart ?? 0;
                                     const end = target.selectionEnd ?? 0;
                                     const currentVal = formData.client_phone || '';
-                                    const newVal = currentVal.slice(0, start) + cleaned + currentVal.slice(end);
+                                    const rawVal = currentVal.slice(0, start) + cleaned + currentVal.slice(end);
+                                    const newVal = normalizePhoneInput(rawVal);
                                     setFormData(prev => ({
                                         ...prev,
                                         client_phone: newVal
                                     }));
                                     requestAnimationFrame(() => {
-                                        target.setSelectionRange(start + cleaned.length, start + cleaned.length);
+                                        const newCursor = Math.min(newVal.length, start + cleaned.length);
+                                        target.setSelectionRange(newCursor, newCursor);
                                     });
                                 }}
                                 required
