@@ -16,6 +16,9 @@ export class Html5QrcodeScannerService implements IScannerService {
   private html5QrCode: Html5Qrcode | null = null;
   private readonly containerId = 'html5-qrcode-scanner-container';
 
+  private isStarting = false;
+  private shouldStop = false;
+
   // ── IScannerService ──────────────────────────────────────────────
 
   isSupported(): boolean {
@@ -39,17 +42,21 @@ export class Html5QrcodeScannerService implements IScannerService {
   }
 
   async startScanning(): Promise<void> {
-    // В html5-qrcode вызов startScanning() напрямую инициализирует видео
     const container = document.getElementById(this.containerId);
     if (!container) return;
 
-    if (this.isRunning && this.html5QrCode) {
-      this.stopScanning();
-      await new Promise(r => setTimeout(r, 200));
+    // Сбрасываем флаг отмены перед стартом
+    this.shouldStop = false;
+
+    // Если уже идёт сканирование или запуск, ничего повторно не запускаем
+    if (this.isRunning || this.isStarting) {
+      return;
     }
 
+    this.isStarting = true;
+
     try {
-      this.html5QrCode = new Html5Qrcode(this.containerId, {
+      const qrCodeInstance = new Html5Qrcode(this.containerId, {
         verbose: false,
         formatsToSupport: [
           Html5QrcodeSupportedFormats.CODE_128,
@@ -61,6 +68,7 @@ export class Html5QrcodeScannerService implements IScannerService {
           Html5QrcodeSupportedFormats.QR_CODE
         ]
       });
+      this.html5QrCode = qrCodeInstance;
 
       const defaultDeviceId = getDefaultCameraDeviceId();
 
@@ -88,7 +96,7 @@ export class Html5QrcodeScannerService implements IScannerService {
         ? defaultDeviceId
         : { facingMode: 'environment' };
 
-      await this.html5QrCode.start(
+      await qrCodeInstance.start(
         cameraConfig,
         config,
         (decodedText, decodedResult) => {
@@ -100,31 +108,86 @@ export class Html5QrcodeScannerService implements IScannerService {
         }
       );
 
+      this.isStarting = false;
+
+      // Если пока запускалась камера, пользователь уже нажал «Закрыть» / «Отмена»
+      if (this.shouldStop || this.html5QrCode !== qrCodeInstance) {
+        this.stopScannerInstance(qrCodeInstance);
+        return;
+      }
+
       this.isRunning = true;
     } catch (err) {
-      this.dispatchError(err);
+      this.isStarting = false;
+      this.stopDomMediaStreams();
+      if (!this.shouldStop) {
+        this.dispatchError(err);
+      }
     }
   }
 
   stopScanning(): void {
-    if (!this.isRunning || !this.html5QrCode) return;
-    
-    // Сохраняем ссылку на текущий инстанс и сразу очищаем переменные состояния,
-    // чтобы предотвратить конфликты при быстром открытии/закрытии сканера.
-    const currentScanner = this.html5QrCode;
-    this.html5QrCode = null;
+    this.shouldStop = true;
+    this.isStarting = false;
     this.isRunning = false;
 
+    // Принудительно глушим все MediaStreamTrack в DOM контейнере
+    this.stopDomMediaStreams();
+
+    if (!this.html5QrCode) return;
+    
+    const currentScanner = this.html5QrCode;
+    this.html5QrCode = null;
+
+    this.stopScannerInstance(currentScanner);
+  }
+
+  private stopScannerInstance(scanner: Html5Qrcode): void {
     try {
-      currentScanner.stop()
-        .catch(() => {})
-        .finally(() => {
-          try {
-            currentScanner.clear();
-          } catch {}
-        });
+      // Html5Qrcode.isScanning доступен в html5-qrcode
+      const isScanning = (scanner as unknown as { isScanning?: boolean }).isScanning ?? true;
+      if (isScanning) {
+        scanner.stop()
+          .catch(() => {})
+          .finally(() => {
+            try {
+              scanner.clear();
+            } catch {}
+            this.stopDomMediaStreams();
+          });
+      } else {
+        try {
+          scanner.clear();
+        } catch {}
+        this.stopDomMediaStreams();
+      }
     } catch {
-       // Catch sync errors
+      this.stopDomMediaStreams();
+    }
+  }
+
+  /**
+   * Гарантированно глушит все открытые видео-потоки и треки камеры,
+   * привязанные к контейнеру сканера или глобально захваченные <video> элементами.
+   */
+  private stopDomMediaStreams(): void {
+    try {
+      const container = document.getElementById(this.containerId);
+      if (!container) return;
+
+      const videoElements = container.querySelectorAll('video');
+      videoElements.forEach((video) => {
+        if (video.srcObject && video.srcObject instanceof MediaStream) {
+          video.srcObject.getTracks().forEach((track) => {
+            try {
+              track.stop();
+            } catch {}
+          });
+          video.srcObject = null;
+        }
+      });
+    } catch {
+      // Игнорируем ошибки при очистке потоков
     }
   }
 

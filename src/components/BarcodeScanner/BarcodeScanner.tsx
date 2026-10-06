@@ -42,7 +42,15 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
       stopScanning()
       reset()
     }
-  }, [isOpen, startScanning, stopScanning, handleScanResult, handleScanError, reset])
+  }, [isOpen])
+
+  useEffect(() => {
+    return () => {
+      scannerServiceRef.current.stopScanning()
+      stopScanning()
+      reset()
+    }
+  }, [])
 
   useEffect(() => {
     if (state.scanStatus === 'found' && state.lastResult) {
